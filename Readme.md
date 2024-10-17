@@ -1,3 +1,8 @@
 ## FILE MANAGER
 
-Proyect made for my data structure class on UNITEC
+Proyect made for my data structure class at UNITEC using binary files
+
+# Tools
+
+C++
+CMake
