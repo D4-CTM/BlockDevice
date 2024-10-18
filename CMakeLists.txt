@@ -6,4 +6,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED 14)
 
 add_executable(${PROJECT_NAME}  main.cpp
                                 ./tools/Partition.hpp
+                                ./tools/Partition.cpp
 )
