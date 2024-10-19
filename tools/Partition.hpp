@@ -16,14 +16,17 @@ private:
             free = true;
         }
 
+        ~Block()
+        { delete [] bytes; }
+
         unsigned char* bytes;
         bool free;
     };
 
 //private variables
 private:
-    Superblock* sb;
-    Block* blocks;
+    Superblock* sb = nullptr;
+    Block* blocks = nullptr;
 //main methods
 public:
 
@@ -33,10 +36,15 @@ public:
     //set the data of the superblock to indicate how many blocks and how many they are gonna weight
     void setPartitionConfiguration(unsigned int blocks_cant, unsigned int blocks_size);
     
-    void createPartition(const char* fileName);
+    void createPartition(const char* fileName, unsigned int blocks_cant, unsigned int blocks_size);
+
+    ~Disk_partioner() {
+        delete sb;
+        delete blocks;
+    }
 //Private functions used within the code
 private:
-    int calculate_partition_size(int blocks, int blocks_size) 
+    constexpr inline int calculate_partition_size(int blocks, int blocks_size) 
     { return blocks * blocks_size; }
 };
 

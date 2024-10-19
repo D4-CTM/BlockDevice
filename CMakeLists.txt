@@ -1,10 +1,18 @@
 cmake_minimum_required(VERSION 3.5)
 project("FileManager")
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED 14)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/tools)
 
 add_executable(${PROJECT_NAME}  main.cpp
                                 ./tools/Partition.hpp
                                 ./tools/Partition.cpp
+                                ./tools/TextColor.h
+                                ./tools/CMD.hpp
+                                ./tools/CMD.cpp
 )
