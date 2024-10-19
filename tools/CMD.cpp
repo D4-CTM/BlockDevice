@@ -1,5 +1,10 @@
 #include "CMD.hpp"
 
+CMD::CMD() : run(true), partitionName("") {
+    if (!std::filesystem::exists(ROOT_PATH))
+        std::filesystem::create_directory(ROOT_PATH);
+}
+
 const void CMD::readLine(const std::string& command)
 {
     auto lines = split(command);
@@ -11,19 +16,18 @@ const void CMD::readLine(const std::string& command)
         if (lines[i] == CLEAR_SCREEN) {
             clearScreen();
         } else if (lines[i] == CLOSE_TERMINAL) {
-            goBack();
+            killTerminal();
+        } else if (lines[i] == LIST_PARTITION) {
+            listElements();
         }
 
     }
 }
 
+//When we incorporate the file itself this will be use
 const void CMD::goBack()
 {
-    if (partitionName.empty()) {
-        killTerminal();
-    }
 }
-
 
 const bool CMD::createPartition(const std::string& path)
 {
@@ -39,8 +43,16 @@ const bool CMD::removePartition(const std::string& path)
     return true;
 }
 
-const void CMD::listPartition(const std::string& path)
+const void CMD::listElements()
 {
+    if (partitionName.empty()) {
+        for (const auto& element : std::filesystem::directory_iterator(ROOT_PATH)) {
+            if (element.is_regular_file()) {
+                std::cout << AnsiCodes::BLUE << std::filesystem::path(element).filename().string() << AnsiCodes::DEFAULT << '\t';
+            }
+        }
+    }
+    std::cout << '\n';
 }
 
 std::vector<std::string> CMD::split(const std::string& command)

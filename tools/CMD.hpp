@@ -2,6 +2,7 @@
 #define __CONSOLE_COMAND__
 #include "Partition.hpp"
 #include "TextColor.h"
+#include <filesystem>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -13,18 +14,21 @@ private:
     const std::string CREATE_PARTITION = "MkPar";
     const std::string DELETE_PARTITION = "rm";
     const std::string LIST_PARTITION = "ls";
+    const std::string ENTER_FILE = "cd";
     //General commands
     const std::string CLOSE_TERMINAL = "kill";
     const std::string CLEAR_SCREEN = "clear";
     const std::string HELP_ME = "--help";
+
+    //root directory where we'll save all our files (partitions, as we call 'em)
+    const std::string ROOT_PATH = "Partitions";
 //Public functions to use the software
 public:
-    CMD() : run(true), partitionName("") {}
-
+    CMD();
     const void readLine(const std::string& command);
     const bool createPartition(const std::string& path);
     const bool removePartition(const std::string& path);
-    const void listPartition(const std::string& path);
+    const void listElements();
 
     inline void clearScreen() {
         std::cout << "\033[2J"; // Erase in Display (clear screen)
@@ -32,7 +36,7 @@ public:
     }
 
     constexpr inline bool isRunning() { return run; }
-
+    inline const std::string getPath() { return ROOT_PATH + partitionName; }
 //Private functions
 private:
     std::vector<std::string> split(const std::string& command);
