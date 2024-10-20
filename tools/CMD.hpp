@@ -30,6 +30,7 @@ public:
     const bool removePartition(const std::string& path);
     const void listElements();
 
+    //Credit to the geniuses on stack overflow
     inline void clearScreen() {
         std::cout << "\033[2J"; // Erase in Display (clear screen)
         std::cout << "\033[H"; // Move cursor to (0,0)
