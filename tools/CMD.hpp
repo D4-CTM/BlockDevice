@@ -37,7 +37,7 @@ public:
     }
 
     constexpr inline bool isRunning() { return run; }
-    inline const std::string getPath() { return ROOT_PATH + partitionName; }
+    inline const std::string getPath() { return partitionName; }
 //Private functions
 private:
     std::vector<std::string> split(const std::string& command);

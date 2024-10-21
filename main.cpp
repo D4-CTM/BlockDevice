@@ -7,7 +7,7 @@ int main() {
 
     while(commandLine.isRunning()) {
         try {
-            std::cout << AnsiCodes::YELLOW << "sudo@Partioner: ~/" << commandLine.getPath() << "$ " << AnsiCodes::DEFAULT;
+            std::cout << AnsiCodes::YELLOW << "sudo@FileManager: ~/" << commandLine.getPath() << "$ " << AnsiCodes::DEFAULT;
             std::getline(std::cin, command);
             if (!command.empty()) {
                 commandLine.readLine(command);
