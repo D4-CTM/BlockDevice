@@ -14,7 +14,7 @@ private:
         void setBlockData(int bytes_cant) {
             bytes = new unsigned char[bytes_cant];
             free = true;
-        }
+        }   
 
         ~Block()
         { delete [] bytes; }

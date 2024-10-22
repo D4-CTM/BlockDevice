@@ -11,7 +11,7 @@ class CMD {
 //Command lines
 private:
     //Partition commands
-    const std::string CREATE_PARTITION = "MkPar";
+    const std::string CREATE_PARTITION = "mkpar";
     const std::string DELETE_PARTITION = "rm";
     const std::string LIST_PARTITION = "ls";
     const std::string ENTER_FILE = "cd";
@@ -29,6 +29,7 @@ public:
     const bool createPartition(const std::string& path);
     const bool removePartition(const std::string& path);
     const void listElements();
+    const void helpMe();
 
     //Credit to the geniuses on stack overflow
     inline void clearScreen() {

@@ -19,10 +19,24 @@ const void CMD::readLine(const std::string& command)
             killTerminal();
         } else if (lines[i] == LIST_PARTITION) {
             listElements();
-        }
+        } else if (lines[i] == HELP_ME) {
+            helpMe();
+        } 
 
     }
 }
+
+const void CMD::helpMe()
+{
+    std::cout << AnsiCodes::BLUE << "--help: list all commands." << '\n';
+    std::cout << "Common use commands:" << '\n';
+    std::cout << "\tcd <selected directory>: move to the selected directory" << '\n';
+    std::cout << "\tls: list all files on the current directory." << '\n';
+    std::cout << "\tclear: remove all elements on screen." << '\n';
+    std::cout << "\tkill: exits the program" << '\n';
+    std::cout << AnsiCodes::DEFAULT << '\n';
+}
+
 
 //When we incorporate the file itself this will be use
 const void CMD::goBack()
