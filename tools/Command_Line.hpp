@@ -35,11 +35,8 @@ private:
     const void helpMe();
     const void listElements();
     const void createPartition();
-    //Credit to the geniuses on stack overflow
-    inline void clearScreen() {
-        std::cout << "\033[2J"; // Erase in Display (clear screen)
-        std::cout << "\033[H"; // Move cursor to (0,0)
-    }
+
+    inline void clearScreen() { system("clear"); }
 
 //Variables
 private:

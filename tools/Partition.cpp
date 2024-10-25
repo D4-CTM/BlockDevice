@@ -6,11 +6,8 @@ const void Disk_Partitioner::createPartition(const std::string &partitionName, s
 
     if (writer.is_open()) 
     {
-        std::cout << "Partition created" << '\n';
         writer.write(reinterpret_cast<char *>(&block_Cant), sizeof(size_t));
-        std::cout << "cant added" << '\n';
         writer.write(reinterpret_cast<char *>(&block_Size), sizeof(size_t));
-        std::cout << "size added" << '\n';
 
         bool free;
         char* bytes;

@@ -91,7 +91,7 @@ const void Command_Line::createPartition() {
         std::cout << "| 5. Cancel operation              |" << '\n';
         std::cout << "|----------------------------------|" << '\n';
         std::cout << "digit an option: " << AnsiCodes::DEFAULT;
-        std::cin >> ans;
+        getline(std::cin, ans);
 
         clearScreen();
         switch (ans[0]) {
@@ -110,7 +110,7 @@ const void Command_Line::createPartition() {
             case '4':
                 if (fileName.empty()) {
                     std::cout << AnsiCodes::RED << "Please input the name of the partition!" << '\n';
-                } else if (partitionInfo(fileName, blocks_size, block_cant)) {
+                } else if (partitionInfo(fileName, blocks_size, block_cant)) {                    
                     partitioner->createPartition((ROOT + "/" + fileName + ".bin"), block_cant, blocks_size);
                 }
             break;
