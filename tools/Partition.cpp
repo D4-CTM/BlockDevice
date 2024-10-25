@@ -1,25 +1,35 @@
 #include "Partition.hpp"
 
-void Disk_partioner::setPartitionConfiguration(unsigned int blocks_cant, unsigned int blocks_size)
+const void Disk_Partitioner::createPartition(const std::string &partitionName, size_t &block_Cant, size_t &block_Size)
 {
-    sb = new Superblock();
-    sb->blocks_cant = blocks_cant;
-    sb->blocks_size = blocks_size;
+    std::ofstream writer(partitionName, std::ios::binary);
 
-    blocks = new Block[blocks_cant];
-    for (int i = 0; i < blocks_cant; i++) 
-    { blocks[i].setBlockData(blocks_size); }
+    if (writer.is_open()) 
+    {
+        std::cout << "Partition created" << '\n';
+        writer.write(reinterpret_cast<char *>(&block_Cant), sizeof(size_t));
+        std::cout << "cant added" << '\n';
+        writer.write(reinterpret_cast<char *>(&block_Size), sizeof(size_t));
+        std::cout << "size added" << '\n';
+
+        bool free;
+        char* bytes;
+        for (int i = 0; i < block_Cant; i++) {
+            bytes = new char[block_Size - 1];
+            writer.write(reinterpret_cast<char *>(&free), sizeof(bool));
+            writer.write(reinterpret_cast<char *>(&bytes), sizeof(char) * (block_Size - 1));
+            if (bytes) {
+                delete [] bytes;
+                bytes = nullptr;
+            }
+        }
+
+        writer.close();
+    }
+
 }
 
-void Disk_partioner::createPartition(const char *fileName, unsigned int blocks_cant, unsigned int blocks_size)
+const void Disk_Partitioner::readPartition(const std::string &partitionName)
 {
-    if (sb == nullptr) 
-    { throw std::runtime_error("The superblock data is not set!"); }
 
-    std::ofstream fileWriter(fileName, std::ios::binary);
-    if (fileWriter.is_open()) {
-        fileWriter.write(reinterpret_cast<char *>(&sb), sizeof(Superblock));
-        fileWriter.write(reinterpret_cast<char *>(&blocks), sizeof(&blocks));            
-        fileWriter.close();
-    }
 }

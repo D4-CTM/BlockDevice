@@ -1,51 +1,26 @@
-#ifndef __PARTIONER__
-#define __PARTIONER__
+#ifndef __Disk_Partitioner_HPP__
+#define __Disk_Partitioner_HPP__
+#include <iostream>
 #include <fstream>
 
-class Disk_partioner {
-//Strucs and subclasses used to create the 'disk partition' simulation file
+class Disk_Partitioner {
 private:
-    struct Superblock {
-        unsigned int blocks_size;
-        unsigned int blocks_cant;
-    };
-
-    struct Block {
-        void setBlockData(int bytes_cant) {
-            bytes = new unsigned char[bytes_cant];
-            free = true;
-        }   
-
-        ~Block()
-        { delete [] bytes; }
-
-        unsigned char* bytes;
-        bool free;
-    };
-
-//private variables
-private:
-    Superblock* sb = nullptr;
-    Block* blocks = nullptr;
-//main methods
+    size_t block_Cant;
+    size_t block_Size;
 public:
+    Disk_Partitioner() 
+    : block_Cant(0), block_Size(0)
+    {}
 
-    Disk_partioner(unsigned int blocks_cant, unsigned int blocks_size) 
-    { setPartitionConfiguration(blocks_cant, blocks_size); }
+    const void createPartition(const std::string& partitionName, size_t& block_Cant, size_t& block_Size);
+    const void readPartition(const std::string& partitionName);
 
-    //set the data of the superblock to indicate how many blocks and how many they are gonna weight
-    void setPartitionConfiguration(unsigned int blocks_cant, unsigned int blocks_size);
-    
-    void createPartition(const char* fileName, unsigned int blocks_cant, unsigned int blocks_size);
+    constexpr inline size_t getBlockCant() { return block_Cant; }
+    constexpr inline size_t getBlockSize() { return block_Size; }
 
-    ~Disk_partioner() {
-        delete sb;
-        delete blocks;
-    }
-//Private functions used within the code
-private:
-    constexpr inline int calculate_partition_size(int blocks, int blocks_size) 
-    { return blocks * blocks_size; }
+    ~Disk_Partitioner()
+    {}
+
 };
 
-#endif //__PARTIONER__
+#endif  //__Disk_Partitioner_HPP__

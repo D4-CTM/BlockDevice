@@ -1,19 +1,17 @@
 #include <iostream>
-#include "./tools/CMD.hpp"
+#include "./tools/Command_Line.hpp"
 
 int main() {
-    CMD commandLine = CMD();
-    std::string command;
+    Command_Line commandLine;
+    std::string line;
 
     while(commandLine.isRunning()) {
         try {
-            std::cout << AnsiCodes::YELLOW << "sudo@FileManager: ~/" << commandLine.getPath() << "$ " << AnsiCodes::DEFAULT;
-            std::getline(std::cin, command);
-            if (!command.empty()) {
-                commandLine.readLine(command);
-            }
+            std::cout << AnsiCodes::YELLOW << "sudo@FileManager: ~" << commandLine.getPartitionName() << AnsiCodes::DEFAULT << " $ ";
+            getline(std::cin, line);
+            commandLine.doCommand(line);
         } catch (const std::invalid_argument& e) {
-            std::cout << AnsiCodes::RED << e.what() << '\n';
+            std::cerr << AnsiCodes::RED << e.what() << '\n';
         }
     }
 

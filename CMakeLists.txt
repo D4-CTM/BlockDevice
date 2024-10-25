@@ -13,6 +13,6 @@ add_executable(${PROJECT_NAME}  main.cpp
                                 ./tools/Partition.hpp
                                 ./tools/Partition.cpp
                                 ./tools/TextColor.h
-                                ./tools/CMD.hpp
-                                ./tools/CMD.cpp
+                                ./tools/Command_Line.hpp
+                                ./tools/Command_Line.cpp
 )
