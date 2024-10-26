@@ -17,6 +17,7 @@ private:
     const std::string LIST_ELEMENTS = "ls";
     //Mathods to manage partitions
     const std::string CREATE_PARTITION = "mkpar";
+    const std::string SELECT_PARTITION = "sp";
 
     Disk_Partitioner* partitioner;
 public:
@@ -24,7 +25,7 @@ public:
 
     const void doCommand(const std::string& methods);
     constexpr inline bool isRunning() { return run; };
-    const inline std::string getPartitionName() { return partitionName == "" ? "" : "/" + partitionName; }
+    const inline std::string getPartitionName() { return partitionName == "" ? "" : "/" + partitionName + ".pt"; }
 
     ~Command_Line() {
         if (partitioner) delete partitioner;
@@ -34,7 +35,7 @@ private:
     const std::vector<std::string> split(const std::string& command);
     const void helpMe();
     const void listElements();
-    const void createPartition();
+    const void createPartition(const std::string& fileName);
 
     inline void clearScreen() { system("clear"); }
 

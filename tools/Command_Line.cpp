@@ -26,18 +26,18 @@ const void Command_Line::doCommand(const std::string &methods)
             break;
         } else if (lines[i] == HELP_ME) {
             helpMe();
+            break;
         } else if (lines[i] == CREATE_PARTITION) {
-            createPartition();
+            if (lines.size() > i + 1) {
+                createPartition(lines[i + 1]);
+            } else std::cout << AnsiCodes::RED << "ERROR: Please input the partition name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+            break;
+        } else if (lines[i] == SELECT_PARTITION) {
+
         }
 
     }
 
-}
-
-const void defineName(std::string& name) {
-    std::cout << AnsiCodes::GREEN << "Input the partition name: " << AnsiCodes::DEFAULT;
-    getline(std::cin, name);
-    if (name.empty()) defineName(name);
 }
 
 const void defineBlockSize(size_t& blocks_Size) {
@@ -74,44 +74,39 @@ const bool partitionInfo(const std::string& fileName, const size_t& blocks_size,
     return ans[0] == 'Y' || ans[0] == 'y';
 }
 
-const void Command_Line::createPartition() {
-    std::string fileName = "";
+const void Command_Line::createPartition(const std::string& fileName) {
     size_t blocks_size = 10;
     size_t block_cant = 5;
     std::string ans = " ";
     
     clearScreen();
-    while (ans[0] != '5') {
+    while (ans[0] != '4') {
         std::cout << AnsiCodes::GREEN;
+        std::cout << "| Partition name: " << fileName << '\n';
         std::cout << "|----------------------------------|" << '\n';
-        std::cout << "| 1. Name Partition                |" << '\n';
-        std::cout << "| 2. Blocks size                   |" << '\n';
-        std::cout << "| 3. blocks quantity               |" << '\n';
-        std::cout << "| 4. Create partition              |" << '\n';
-        std::cout << "| 5. Cancel operation              |" << '\n';
+        std::cout << "| 1. Blocks size                   |" << '\n';
+        std::cout << "| 2. blocks quantity               |" << '\n';
+        std::cout << "| 3. Create partition              |" << '\n';
+        std::cout << "| 4. Cancel operation              |" << '\n';
         std::cout << "|----------------------------------|" << '\n';
-        std::cout << "digit an option: " << AnsiCodes::DEFAULT;
+        std::cout << "| digit an option: " << AnsiCodes::DEFAULT;
         getline(std::cin, ans);
 
         clearScreen();
         switch (ans[0]) {
             case '1':
-                defineName(fileName);
-            break;
-
-            case '2':
                 defineBlockSize(blocks_size);
             break;
 
-            case '3':
+            case '2':
                 defineBlockCant(block_cant);
             break;
 
-            case '4':
+            case '3':
                 if (fileName.empty()) {
                     std::cout << AnsiCodes::RED << "Please input the name of the partition!" << '\n';
                 } else if (partitionInfo(fileName, blocks_size, block_cant)) {                    
-                    partitioner->createPartition((ROOT + "/" + fileName + ".bin"), block_cant, blocks_size);
+                    partitioner->createPartition((ROOT + "/" + fileName + ".pt"), block_cant, blocks_size);
                 }
             break;
         }
@@ -150,9 +145,14 @@ const void Command_Line::helpMe()
     std::cout << AnsiCodes::BLUE;
     std::cout << HELP_ME << ": display a list of all commands" << '\n';
     std::cout << "Commonly use commands" << '\n';
-    std::cout << "\t" << LIST_ELEMENTS << ": display's a list of all elements" << '\n';
-    std::cout << "\t" << KILL << ": exit's this program" << '\n';
-    std::cout << "\t" << CLEAR << ": remove's every element on the screen for a cleaner terminal." << '\n';
+    std::cout << '\t' << LIST_ELEMENTS << ": display's a list of all elements" << '\n';
+    std::cout << '\t' << KILL << ": exit's this program" << '\n';
+    std::cout << '\t' << CLEAR << ": remove's every element on the screen for a cleaner terminal." << '\n';
+    std::cout << "\nPartition creation tools:" << '\n';
+    std::cout << '\t' << CREATE_PARTITION << " <partition name>: creates a partition with the specified name" << '\n';
+    std::cout << '\t' << SELECT_PARTITION << " <partition name> | <..>: selects the partition with the specified name." << '\n';
+    std::cout << "\t\t\t\t  " << "| go back to the root file \'~\'." << '\n';
 
+//    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';
 }
