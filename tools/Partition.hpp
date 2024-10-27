@@ -1,7 +1,9 @@
 #ifndef __Disk_Partitioner_HPP__
 #define __Disk_Partitioner_HPP__
+#include "TextColor.h"
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 class Disk_Partitioner {
 private:
@@ -17,9 +19,9 @@ public:
     {}
 
     const void create(const std::string& partitionName, size_t& block_Cant, size_t& block_Size);
-    const void read(int& blockPos, int& initialPos, int& finalPos);
-    const void write(int& blockPos, const unsigned char* bytes);
+    const bool write(const int& blockPos, const std::vector<unsigned char>& bytes);
     const void select(const std::string& partitionName);
+    const bool read(int& blockPos);
     const void info();
 
     const inline std::string getPartitionPath() { return partitionName = "" ? "" : ROOT + "/" + partitionName; }

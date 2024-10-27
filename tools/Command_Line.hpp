@@ -1,10 +1,7 @@
 #ifndef __COMMAND_LINE_HPP__
 #define __COMMAND_LINE_HPP__
 #include "Partition.hpp"
-#include "TextColor.h"
 #include <filesystem>
-#include <iostream>
-#include <vector>
 
 class Command_Line {
 private:
@@ -36,10 +33,11 @@ private:
     const std::vector<std::string> split(const std::string& command);
     const void helpMe();
     const void listElements();
+    const void writeInformation(const std::vector<std::string>& partitionInfo, const std::string& originalCommand);
     const void createPartition(const std::vector<std::string>& partitionInfo);
     const void selectPartition(const std::string& fileName);
 
-    inline void clearScreen() { system("clear"); }
+    const inline void clearScreen() { system("clear"); }
 
 private:
     bool run;

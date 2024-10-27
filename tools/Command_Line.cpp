@@ -55,7 +55,7 @@ const void Command_Line::doCommand(const std::string &methods)
     
     } else if (lines[0] == WRITE_INFO) {
 
-
+        writeInformation(lines, methods);
 
     } else if (lines[0] == READ_INFO) {
 
@@ -78,13 +78,13 @@ const bool isNumeric(const std::string& str) {
 
 const void Command_Line::createPartition(const std::vector<std::string>& partitionInfo) {
     const int size = partitionInfo.size();
-    if (size < 1) {
+    if (size <= 1) {
         std::cout << AnsiCodes::RED << "ERROR: please input the partition name!" << '\n';
         return ;
     }
     std::string fileName = partitionInfo[1];
 
-    if (size < 2) {
+    if (size <= 2) {
         std::cout << AnsiCodes::RED << "ERROR: please digit the size of each block!" << '\n';
         return ;
     }
@@ -100,7 +100,7 @@ const void Command_Line::createPartition(const std::vector<std::string>& partiti
         return ;
     }
 
-    if (size < 3) {
+    if (size <= 3) {
         std::cout << AnsiCodes::RED << "ERROR: please digit the quantity of blocks on the partition!" << '\n';
         return ;
     }
@@ -149,6 +149,64 @@ const void Command_Line::listElements()
     std::cout << '\n';
 }
 
+std::vector<unsigned char> getInnerString(std::string str) {
+    int initialPos = 0;
+    int finalPos = 0;
+
+    for (int i = 0; i < str.length(); i++) {
+
+        if (str[i] == '\"') {
+
+            if (initialPos == 0) {
+                initialPos = i + 1;
+            } else {
+                finalPos = i;
+            }
+
+        }
+
+    }
+
+    if (finalPos <= initialPos) return {' '};
+
+    std::vector<unsigned char> text;
+
+    for (int i = initialPos; i < finalPos; i++) {
+        text.push_back(str[i]);
+    }
+
+    return text;
+}
+
+const void Command_Line::writeInformation(const std::vector<std::string>& partitionInfo, const std::string& originalCommand)
+{
+    const int size = partitionInfo.size();
+
+    if (size <= 1) {
+        std::cout << AnsiCodes::RED << "ERROR: please input the block in which you'll like to write something!" << '\n';
+        return;
+    }
+
+    if (!isNumeric(partitionInfo[1])) {
+        std::cout << AnsiCodes::RED << "ERROR: please digit a numeric value for the position to which you'll write." << '\n';
+        return;
+    }
+    const int writtingPos = std::stoi(partitionInfo[1]);
+
+    if (size <= 2) {
+        std::cout << AnsiCodes::RED << "ERROR: please input the data you'll store on this block!" << '\n';
+        return;
+    }
+    const auto text = getInnerString(originalCommand);   
+
+    if (text.size() == 1) {
+        std::cout << AnsiCodes::RED << "ERROR: please type the data you need on the correct format!" << '\n';
+        return;
+    }
+
+    partitioner->write(writtingPos, text);
+}
+
 const std::vector<std::string> Command_Line::split(const std::string& command)
 {
     std::vector<std::string> lines;
@@ -176,6 +234,7 @@ const void Command_Line::helpMe()
     std::cout << '\t' << SELECT_PARTITION << " <partition name> | <..>: selects the partition with the specified name." << '\n';
     std::cout << "\t\t\t\t  " << "| go back to the root file \'~\' closing the current partition." << '\n';
     std::cout << '\t' << PARTITION_INFO << ": displays some basic information about the selected partition" << '\n'; 
+    std::cout << '\t' << WRITE_INFO << " <block> <data>: writed the data to the specified block, wrap the data between some \"\"" << '\n';
 //    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';
 }
