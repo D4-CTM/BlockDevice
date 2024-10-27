@@ -26,6 +26,18 @@ const void Disk_Partitioner::createPartition(const std::string &partitionName, s
 
 }
 
+const void Disk_Partitioner::selectPartition(const std::string &partitionName)
+{
+    std::ifstream reader(partitionName, std::ios::binary);
+
+    if (reader.is_open()) {
+        reader.read(reinterpret_cast<char *>(&block_Cant), sizeof(size_t));
+        reader.read(reinterpret_cast<char *>(&block_Size), sizeof(size_t));
+
+        reader.close();
+    }
+}
+
 const void Disk_Partitioner::readPartition(const std::string &partitionName)
 {
 

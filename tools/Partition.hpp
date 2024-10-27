@@ -5,6 +5,7 @@
 
 class Disk_Partitioner {
 private:
+    const int initialBlockPosition = 2 * (sizeof(size_t));
     size_t block_Cant;
     size_t block_Size;
 public:
@@ -13,6 +14,7 @@ public:
     {}
 
     const void createPartition(const std::string& partitionName, size_t& block_Cant, size_t& block_Size);
+    const void selectPartition(const std::string& partitionName);
     const void readPartition(const std::string& partitionName);
 
     constexpr inline size_t getBlockCant() { return block_Cant; }

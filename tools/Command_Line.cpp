@@ -8,38 +8,6 @@ Command_Line::Command_Line()
     }
 }
 
-const void Command_Line::doCommand(const std::string &methods)
-{
-    if (methods.empty()) return ;
-    auto lines = split(methods);
-    for (int i = 0; i < lines.size(); i++) {
-        if (lines[i].empty()) throw std::runtime_error("ERROR: please don't leave extra empty spaces");
-
-        if (lines[i] == KILL) {
-            run = false;
-            break;
-        } else if (lines[i] == CLEAR) {
-            clearScreen();
-            break;
-        } else if (lines[i] == LIST_ELEMENTS) {
-            listElements();
-            break;
-        } else if (lines[i] == HELP_ME) {
-            helpMe();
-            break;
-        } else if (lines[i] == CREATE_PARTITION) {
-            if (lines.size() > i + 1) {
-                createPartition(lines[i + 1]);
-            } else std::cout << AnsiCodes::RED << "ERROR: Please input the partition name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
-            break;
-        } else if (lines[i] == SELECT_PARTITION) {
-
-        }
-
-    }
-
-}
-
 const void defineBlockSize(size_t& blocks_Size) {
     std::cout << AnsiCodes::GREEN << "Digit the size (bytes) of each block in the partition: " << AnsiCodes::DEFAULT;
     std::cin >> blocks_Size;
@@ -58,9 +26,7 @@ const void defineBlockCant(size_t& block_cant) {
     }
 }
 
-const bool partitionInfo(const std::string& fileName, const size_t& blocks_size, const size_t& block_cant) {
-    std::string ans;
-
+const void partitionInfo(const std::string& fileName, const size_t& blocks_size, const size_t& block_cant) {
     std::cout << AnsiCodes::GREEN;
     std::cout << "|----------------------------------|" << '\n';
     std::cout << "| Partition name: " << fileName << '\n';
@@ -68,10 +34,47 @@ const bool partitionInfo(const std::string& fileName, const size_t& blocks_size,
     std::cout << "| Block quantity: " << block_cant << '\n';
     std::cout << "| Blocks size: " << blocks_size << '\n';
     std::cout << "|----------------------------------|" << '\n';
+
+}
+
+const bool partitionConfirmation(const std::string& fileName, const size_t& blocks_size, const size_t& block_cant) {
+    std::string ans;
+
+    partitionInfo(fileName, blocks_size, block_cant);
     std::cout << "Are you sure about this configuration [Y/N]: " << AnsiCodes::DEFAULT;
 
     std::cin >> ans;
     return ans[0] == 'Y' || ans[0] == 'y';
+}
+
+const void Command_Line::doCommand(const std::string &methods)
+{
+    if (methods.empty()) return ;
+    auto lines = split(methods);
+    if (lines[0].empty()) throw std::runtime_error("ERROR: please don't leave extra empty spaces");
+
+    if (lines[0] == KILL) {
+        run = false;
+    } else if (lines[0] == CLEAR) {
+        clearScreen();
+    } else if (lines[0] == LIST_ELEMENTS) {
+        listElements();
+    } else if (lines[0] == HELP_ME) {
+        helpMe();
+    } else if (lines[0] == CREATE_PARTITION) {
+        if (lines.size() > 1 && !lines[1].empty()) {
+            createPartition(lines[1]);
+        } else std::cout << AnsiCodes::RED << "ERROR: Please input the partition name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+    } else if (lines[0] == SELECT_PARTITION) {
+        if (lines.size() > 1 && !lines[1].empty()) {
+            selectPartition(lines[1]);
+        } else std::cout << AnsiCodes::RED << "ERROR: Please input something the partition\'s name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+    } else if (lines[0] == PARTITION_INFO) {
+        if (!partitionName.empty()) {
+            partitionInfo(partitionName, partitioner->getBlockSize(), partitioner->getBlockCant());
+        } else std::cout << AnsiCodes::RED << "ERROR: Please select a partition first!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+    }
+
 }
 
 const void Command_Line::createPartition(const std::string& fileName) {
@@ -103,15 +106,29 @@ const void Command_Line::createPartition(const std::string& fileName) {
             break;
 
             case '3':
-                if (fileName.empty()) {
-                    std::cout << AnsiCodes::RED << "Please input the name of the partition!" << '\n';
-                } else if (partitionInfo(fileName, blocks_size, block_cant)) {                    
-                    partitioner->createPartition((ROOT + "/" + fileName + ".pt"), block_cant, blocks_size);
+                if (partitionConfirmation(fileName, blocks_size, block_cant)) {                    
+                    partitioner->createPartition((ROOT + "/" + fileName), block_cant, blocks_size);
                 }
             break;
         }
     }
     std::cout << AnsiCodes::DEFAULT;
+}
+
+const void Command_Line::selectPartition(const std::string &fileName)
+{
+    if (fileName == "..") {
+        partitionName = "";
+        return ;
+    }
+
+    partitionName = fileName;
+    if (!std::filesystem::exists(ROOT + getPartitionName())) {
+        std::cout << AnsiCodes::RED << "ERROR: the partition doesn't exists!\n" << AnsiCodes::DEFAULT << "For reference you can use the command \'--help\'" << '\n';
+        partitionName = "";
+        return ;
+    }
+    partitioner->selectPartition(ROOT+ getPartitionName());
 }
 
 const void Command_Line::listElements()
@@ -145,14 +162,14 @@ const void Command_Line::helpMe()
     std::cout << AnsiCodes::BLUE;
     std::cout << HELP_ME << ": display a list of all commands" << '\n';
     std::cout << "Commonly use commands" << '\n';
-    std::cout << '\t' << LIST_ELEMENTS << ": display's a list of all elements" << '\n';
+    std::cout << '\t' << LIST_ELEMENTS << ": display's a list of all partitions" << '\n';
     std::cout << '\t' << KILL << ": exit's this program" << '\n';
-    std::cout << '\t' << CLEAR << ": remove's every element on the screen for a cleaner terminal." << '\n';
-    std::cout << "\nPartition creation tools:" << '\n';
+    std::cout << '\t' << CLEAR << ": remove's every element on the screen: for a cleaner terminal." << '\n';
+    std::cout << "\nPartition tools:" << '\n';
     std::cout << '\t' << CREATE_PARTITION << " <partition name>: creates a partition with the specified name" << '\n';
     std::cout << '\t' << SELECT_PARTITION << " <partition name> | <..>: selects the partition with the specified name." << '\n';
     std::cout << "\t\t\t\t  " << "| go back to the root file \'~\'." << '\n';
-
+    std::cout << '\t' << PARTITION_INFO << ": displays some basic information about the selected partition" << '\n'; 
 //    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';
 }

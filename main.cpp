@@ -5,6 +5,8 @@ int main() {
     Command_Line commandLine;
     std::string line;
 
+    commandLine.doCommand("clear");
+    commandLine.doCommand("--help");
     while(commandLine.isRunning()) {
         try {
             std::cout << AnsiCodes::YELLOW << "sudo@FileManager: ~" << commandLine.getPartitionName() << AnsiCodes::DEFAULT << " $ ";
