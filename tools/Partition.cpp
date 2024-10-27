@@ -1,8 +1,8 @@
 #include "Partition.hpp"
 
-const void Disk_Partitioner::createPartition(const std::string &partitionName, size_t &block_Cant, size_t &block_Size)
+const void Disk_Partitioner::create(const std::string &partitionName, size_t &block_Cant, size_t &block_Size)
 {
-    std::ofstream writer(partitionName, std::ios::binary);
+    std::ofstream writer(ROOT + "/" + partitionName, std::ios::binary);
 
     if (writer.is_open()) 
     {
@@ -10,11 +10,11 @@ const void Disk_Partitioner::createPartition(const std::string &partitionName, s
         writer.write(reinterpret_cast<char *>(&block_Size), sizeof(size_t));
 
         bool free;
-        char* bytes;
+        unsigned char* bytes;
         for (int i = 0; i < block_Cant; i++) {
-            bytes = new char[block_Size - 1];
+            bytes = new unsigned char[block_Size - 1];
             writer.write(reinterpret_cast<char *>(&free), sizeof(bool));
-            writer.write(reinterpret_cast<char *>(&bytes), sizeof(char) * (block_Size - 1));
+            writer.write(reinterpret_cast<char *>(&bytes), sizeof(unsigned char) * (block_Size - 1));
             if (bytes) {
                 delete [] bytes;
                 bytes = nullptr;
@@ -26,19 +26,24 @@ const void Disk_Partitioner::createPartition(const std::string &partitionName, s
 
 }
 
-const void Disk_Partitioner::selectPartition(const std::string &partitionName)
+const void Disk_Partitioner::select(const std::string& _partitionName)
 {
-    std::ifstream reader(partitionName, std::ios::binary);
+    std::ifstream reader(ROOT + "/" + _partitionName, std::ios::binary);
 
     if (reader.is_open()) {
         reader.read(reinterpret_cast<char *>(&block_Cant), sizeof(size_t));
         reader.read(reinterpret_cast<char *>(&block_Size), sizeof(size_t));
-
+        partitionName = _partitionName;
         reader.close();
     }
 }
 
-const void Disk_Partitioner::readPartition(const std::string &partitionName)
+const void Disk_Partitioner::info()
 {
-
+    std::cout << "|----------------------------------|" << '\n';
+    std::cout << "| Partition name: " << partitionName << '\n';
+    std::cout << "| Partition size: " << (2 * sizeof(size_t)) + (block_Cant * (block_Size)) << '\n';
+    std::cout << "| Block quantity: " << block_Cant << '\n';
+    std::cout << "| Blocks size: " << block_Size << '\n';
+    std::cout << "|----------------------------------|" << '\n';
 }

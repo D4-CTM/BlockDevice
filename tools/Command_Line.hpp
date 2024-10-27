@@ -8,25 +8,25 @@
 
 class Command_Line {
 private:
-    //Folder that includes each partition made by the user
-    const std::string ROOT = "./Partitions";
     //Common use methods
     const std::string KILL = "kill";
     const std::string CLEAR = "clear";
     const std::string HELP_ME = "--help";
-    const std::string LIST_ELEMENTS = "ls";
+    const std::string LIST_ELEMENTS = "lp";
     //Mathods to manage partitions
-    const std::string CREATE_PARTITION = "mkpar";
-    const std::string SELECT_PARTITION = "sp";
+    const std::string CREATE_PARTITION = "create";
+    const std::string SELECT_PARTITION = "select";
     const std::string PARTITION_INFO = "info";
+    const std::string WRITE_INFO = "write";
+    const std::string READ_INFO = "read";
 
     Disk_Partitioner* partitioner;
 public:
     Command_Line();
 
     const void doCommand(const std::string& methods);
-    constexpr inline bool isRunning() { return run; };
-    const inline std::string getPartitionName() { return partitionName == "" ? "" : '/' + partitionName; }
+    const std::string getPartitionName() { return partitioner->getPartitionName().empty() ? "" : "/" + partitioner->getPartitionName(); }
+    constexpr inline bool isRunning() { return run; }
 
     ~Command_Line() {
         if (partitioner) delete partitioner;
@@ -36,14 +36,12 @@ private:
     const std::vector<std::string> split(const std::string& command);
     const void helpMe();
     const void listElements();
-    const void createPartition(const std::string& fileName);
+    const void createPartition(const std::vector<std::string>& partitionInfo);
     const void selectPartition(const std::string& fileName);
 
     inline void clearScreen() { system("clear"); }
 
-//Variables
 private:
-    std::string partitionName;
     bool run;
 };
 
