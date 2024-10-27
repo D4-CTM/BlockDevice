@@ -21,10 +21,9 @@ public:
     const void create(const std::string& partitionName, size_t& block_Cant, size_t& block_Size);
     const bool write(const int& blockPos, const std::vector<unsigned char>& bytes);
     const void select(const std::string& partitionName);
-    const bool read(int& blockPos);
+    const std::vector<unsigned char> readBlock(int& blockPos);
     const void info();
 
-    const inline std::string getPartitionPath() { return partitionName = "" ? "" : ROOT + "/" + partitionName; }
     const inline std::string getPartitionName() { return partitionName; }
     const inline std::string getRoot() { return ROOT; }
     constexpr inline size_t getBlockCant() { return block_Cant; }

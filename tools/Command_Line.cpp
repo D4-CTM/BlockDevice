@@ -59,6 +59,8 @@ const void Command_Line::doCommand(const std::string &methods)
 
     } else if (lines[0] == READ_INFO) {
 
+        readInformation(lines);
+
     }
 
 }
@@ -117,6 +119,67 @@ const void Command_Line::createPartition(const std::vector<std::string>& partiti
     }
 
     partitioner->create(fileName, block_cant, blocks_size);
+}
+
+const void Command_Line::readInformation(const std::vector<std::string> &blockInfo)
+{
+    const int size = blockInfo.size();
+
+    if (size <= 1) {
+        std::cout << AnsiCodes::RED << "ERROR: please input the block in which you'll like to read!" << '\n';
+        return;
+    }
+
+    if (!isNumeric(blockInfo[1])) {
+        std::cout << AnsiCodes::RED << "ERROR: please digit a positive numeric value to indicate correctly the block you'll like to read." << '\n';
+        return;
+    }
+    int blockPos = std::stoi(blockInfo[1]);
+    auto& text = partitioner->readBlock(blockPos);
+
+    int offset = 0;
+    int totalChars = text.size();
+
+    if (size > 2 ) {
+        
+        if (!isNumeric(blockInfo[2])) {
+            std::cout << AnsiCodes::RED << "ERROR: please input a positive numeric value for the starting position of the text!" << '\n';
+            return;
+        }
+        offset = std::stoi(blockInfo[2]);
+
+        if (offset > totalChars) {
+            std::cout << AnsiCodes::RED << "ERROR: the starting position for the block #" << blockPos << " should be lesser than " << totalChars << "!" << '\n';            
+            return;
+        }
+
+    }
+
+    if (size > 3) {
+
+        if (!isNumeric(blockInfo[3])) {
+            std::cout << AnsiCodes::RED << "ERROR: please input a positive numeric as for how many characters you'll like to read!" << '\n';
+            return;
+        }
+        totalChars = std::stoi(blockInfo[3]);
+
+        if (totalChars > text.size()) {
+            std::cout << AnsiCodes::RED << "ERROR: the ammount of chars to read exceeds the size of the text itself" << '\n';
+            return;
+        }
+
+        if ((offset + totalChars) > text.size()) {
+            std::cout << AnsiCodes::RED << "ERROR: based on the offset of " << offset << " the ammount of chars to read exceeds the limit!" << '\n';
+            return ;
+        }
+
+    }
+
+    std::cout << AnsiCodes::DEFAULT;
+    for (int i = offset; i < offset + totalChars; i++) {
+        std::cout << text[i];
+    }
+    std::cout << '\n';
 }
 
 const void Command_Line::selectPartition(const std::string &fileName)

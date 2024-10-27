@@ -9,10 +9,15 @@ const void Disk_Partitioner::create(const std::string &partitionName, size_t &bl
         writer.write(reinterpret_cast<char *>(&block_Cant), sizeof(size_t));
         writer.write(reinterpret_cast<char *>(&block_Size), sizeof(size_t));
 
-        bool free;
+        bool free = true;
         unsigned char* bytes;
         for (int i = 0; i < block_Cant; i++) {
             bytes = new unsigned char[block_Size - 1];
+
+            for (int i = 0; i < block_Size - 1; i++) {
+                bytes[i] = '`';
+            }
+
             writer.write(reinterpret_cast<char *>(&free), sizeof(bool));
             writer.write(reinterpret_cast<char *>(&bytes), sizeof(unsigned char) * (block_Size - 1));
             if (bytes) {
@@ -33,12 +38,12 @@ const bool Disk_Partitioner::write(const int &blockPos, const std::vector<unsign
         return false;
     }
 
-    if (blockPos > block_Cant) {
+    if (blockPos + 1 > block_Cant) {
         std::cout << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
         return false;
     }
 
-    if (block_Size < text.size()) {
+    if ((block_Size - 1) < text.size()) {
         std::cout << AnsiCodes::RED << "ERROR: the blocks can only hold " << block_Size << " chars!" << '\n';
         return false;
     }
@@ -49,13 +54,21 @@ const bool Disk_Partitioner::write(const int &blockPos, const std::vector<unsign
         return false;
     }
 
-    int writtingPos = initialBlockPosition + (block_Size * blockPos);
+    const int writtingPos = initialBlockPosition + (block_Size * blockPos);
     writer.seekp(writtingPos, std::ios::beg);
 
     bool free = false;
     writer.write(reinterpret_cast<char *>(&free), sizeof(bool));
-    unsigned char* data = new unsigned char[block_Size];
-    std::copy(text.begin(), text.end(), data);
+    unsigned char data[block_Size - 1];
+    
+    for (int i = 0; i < block_Size - 1; i++) {
+
+        if (i < text.size()) {
+            data[i] = text[i];
+        } else data[i] = '`';
+
+    }
+
     writer.write(reinterpret_cast<char *>(&data), sizeof(unsigned char) * (block_Size - 1));
 
     writer.close();
@@ -74,6 +87,49 @@ const void Disk_Partitioner::select(const std::string &_partitionName)
         partitionName = _partitionName;
         reader.close();
     }
+}
+
+const std::vector<unsigned char> Disk_Partitioner::readBlock(int &blockPos)
+{
+    std::vector<unsigned char> cArray;
+    if (partitionName.empty()) {
+        std::cout << AnsiCodes::RED << "ERROR: please select a partition first" << '\n';
+        return cArray;
+    }
+
+    if (blockPos + 1> block_Cant) {
+        std::cout << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
+        return cArray;
+    }
+
+    std::ifstream reader(ROOT + "/" + partitionName, std::ios::binary);
+
+    if (!reader.is_open()) {
+        std::cout << AnsiCodes::RED << "ERROR: " << partitionName << " couldn't open" << '\n';
+        return cArray;
+    }
+    const int readingPos = initialBlockPosition + (block_Size * blockPos);
+    reader.seekg(readingPos, std::ios::beg);
+
+    bool free;
+    reader.read(reinterpret_cast<char *>(&free), sizeof(bool));
+
+    if (free) {
+        std::cout << AnsiCodes::RED << "ERROR: you haven't write anything on the block #" << blockPos;
+        return cArray;
+    }
+
+    unsigned char data[block_Size - 1];
+    reader.read(reinterpret_cast<char *>(&data), sizeof(unsigned char) * (block_Size - 1));
+    reader.close();
+
+    for (int i = 0; i < block_Size - 1; i++) {
+        if (data[i] != '`') {
+            cArray.push_back(data[i]);
+        }
+    }
+
+    return cArray;
 }
 
 const void Disk_Partitioner::info()

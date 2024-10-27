@@ -35,6 +35,7 @@ private:
     const void listElements();
     const void writeInformation(const std::vector<std::string>& partitionInfo, const std::string& originalCommand);
     const void createPartition(const std::vector<std::string>& partitionInfo);
+    const void readInformation(const std::vector<std::string>& blockInfo);
     const void selectPartition(const std::string& fileName);
 
     const inline void clearScreen() { system("clear"); }
