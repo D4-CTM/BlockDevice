@@ -9,21 +9,33 @@ Command_Line::Command_Line()
 }
 
 const void defineBlockSize(size_t& blocks_Size) {
-    std::cout << AnsiCodes::GREEN << "Digit the size (bytes) of each block in the partition: " << AnsiCodes::DEFAULT;
-    std::cin >> blocks_Size;
-    if (blocks_Size < 10) {
-        std::cout << AnsiCodes::RED << '\n' << "The size of the blocks should be, at minimum, 10 bytes!" << '\n';
+    int size;
+    std::cout << AnsiCodes::GREEN << "Digit the size (bytes) of each block in the partition (minimum 10): " << AnsiCodes::DEFAULT;
+    std::cin >> size;
+    //Credit to chatgpt for this edge case check
+    if (std::cin.fail()) { 
+        std::cin.clear();   
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
+        std::cout << AnsiCodes::RED << "ERROR: please try to digit only numbers." << '\n';
+    } else if (size < 10) {
+        std::cout << AnsiCodes::RED << '\n' << "ERROR: the size of the blocks should be, at minimum, 10 bytes!" << '\n';
         defineBlockSize(blocks_Size);
-    }
+    } else blocks_Size = size;
 }
 
 const void defineBlockCant(size_t& block_cant) {
-    std::cout << AnsiCodes::GREEN << "Digit how many blocks you'll like to have: " << AnsiCodes::DEFAULT;
-    std::cin >> block_cant;
-    if (block_cant < 5) {
-        std::cout << AnsiCodes::RED << '\n' << "There should be at least 5 blocks" << '\n';
-        defineBlockSize(block_cant);
-    }
+    int cant;
+    std::cout << AnsiCodes::GREEN << "Digit how many blocks you'll like to have (minimum 5): " << AnsiCodes::DEFAULT;
+    std::cin >> cant;
+    //Credit to chatgpt for this edge case check
+    if (std::cin.fail()) { 
+        std::cin.clear();   
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
+        std::cout << AnsiCodes::RED << "ERROR: please try to digit only numbers." << '\n';
+    } else if (cant < 5) {
+        std::cout << AnsiCodes::RED << '\n' << "ERROR: there should be at least 5 blocks" << '\n';
+        defineBlockCant(block_cant);
+    } else block_cant = cant;
 }
 
 const void partitionInfo(const std::string& fileName, const size_t& blocks_size, const size_t& block_cant) {
@@ -50,29 +62,50 @@ const bool partitionConfirmation(const std::string& fileName, const size_t& bloc
 const void Command_Line::doCommand(const std::string &methods)
 {
     if (methods.empty()) return ;
-    auto lines = split(methods);
-    if (lines[0].empty()) throw std::runtime_error("ERROR: please don't leave extra empty spaces");
+    const auto lines = split(methods);
+    
+    if (lines[0].empty()) throw std::runtime_error("ERROR: please input first the command");
 
     if (lines[0] == KILL) {
+    
         run = false;
+    
     } else if (lines[0] == CLEAR) {
+    
         clearScreen();
+    
     } else if (lines[0] == LIST_ELEMENTS) {
+    
         listElements();
+    
     } else if (lines[0] == HELP_ME) {
+    
         helpMe();
+
     } else if (lines[0] == CREATE_PARTITION) {
+    
         if (lines.size() > 1 && !lines[1].empty()) {
+    
             createPartition(lines[1]);
+    
         } else std::cout << AnsiCodes::RED << "ERROR: Please input the partition name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+    
     } else if (lines[0] == SELECT_PARTITION) {
+    
         if (lines.size() > 1 && !lines[1].empty()) {
+    
             selectPartition(lines[1]);
+    
         } else std::cout << AnsiCodes::RED << "ERROR: Please input something the partition\'s name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+    
     } else if (lines[0] == PARTITION_INFO) {
+    
         if (!partitionName.empty()) {
+    
             partitionInfo(partitionName, partitioner->getBlockSize(), partitioner->getBlockCant());
+    
         } else std::cout << AnsiCodes::RED << "ERROR: Please select a partition first!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+    
     }
 
 }

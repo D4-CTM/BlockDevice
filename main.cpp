@@ -12,7 +12,7 @@ int main() {
             std::cout << AnsiCodes::YELLOW << "sudo@FileManager: ~" << commandLine.getPartitionName() << AnsiCodes::DEFAULT << " $ ";
             getline(std::cin, line);
             commandLine.doCommand(line);
-        } catch (const std::invalid_argument& e) {
+        } catch (const std::runtime_error& e) {
             std::cerr << AnsiCodes::RED << e.what() << '\n';
         }
     }
