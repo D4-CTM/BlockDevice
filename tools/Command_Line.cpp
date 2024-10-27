@@ -287,8 +287,8 @@ const std::vector<std::string> Command_Line::split(const std::string& command)
 const void Command_Line::helpMe()
 {
     std::cout << AnsiCodes::BLUE;
-    std::cout << HELP_ME << ": display a list of all commands" << '\n';
     std::cout << "Commonly use commands" << '\n';
+    std::cout << '\t' << HELP_ME << ": display a list of all commands" << '\n';
     std::cout << '\t' << LIST_ELEMENTS << ": display's a list of all partitions" << '\n';
     std::cout << '\t' << KILL << ": exit's this program" << '\n';
     std::cout << '\t' << CLEAR << ": remove's every element on the screen, for a cleaner terminal." << '\n';
@@ -298,6 +298,7 @@ const void Command_Line::helpMe()
     std::cout << "\t\t\t\t  " << "| go back to the root file \'~\' closing the current partition." << '\n';
     std::cout << '\t' << PARTITION_INFO << ": displays some basic information about the selected partition" << '\n'; 
     std::cout << '\t' << WRITE_INFO << " <block> <data>: writed the data to the specified block, wrap the data between some \"\"" << '\n';
+    std::cout << "\t" << READ_INFO << " <block> <offset> <total chars>: reads the block specified starting from the offset until reaching the quantity of chars specified"<< '\n';
 //    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';
 }
