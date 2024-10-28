@@ -41,7 +41,7 @@ const void Command_Line::doCommand(const std::string &methods)
     
             selectPartition(lines[1]);
     
-        } else std::cout << AnsiCodes::RED << "ERROR: Please input something the partition\'s name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+        } else std::cerr << AnsiCodes::RED << "ERROR: Please input something the partition\'s name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
     
     } else if (lines[0] == PARTITION_INFO) {
     
@@ -51,7 +51,7 @@ const void Command_Line::doCommand(const std::string &methods)
             partitioner->info();
 
             std::cout << AnsiCodes::DEFAULT;
-        } else std::cout << AnsiCodes::RED << "ERROR: Please select a partition first!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+        } else std::cerr << AnsiCodes::RED << "ERROR: Please select a partition first!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
     
     } else if (lines[0] == WRITE_INFO) {
 
@@ -81,40 +81,40 @@ const bool isNumeric(const std::string& str) {
 const void Command_Line::createPartition(const std::vector<std::string>& partitionInfo) {
     const int size = partitionInfo.size();
     if (size <= 1) {
-        std::cout << AnsiCodes::RED << "ERROR: please input the partition name!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please input the partition name!" << '\n';
         return ;
     }
     std::string fileName = partitionInfo[1];
 
     if (size <= 2) {
-        std::cout << AnsiCodes::RED << "ERROR: please digit the size of each block!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please digit the size of each block!" << '\n';
         return ;
     }
 
     if (!isNumeric(partitionInfo[2])) {
-        std::cout << AnsiCodes::RED << "ERROR: the input for the block size must be a possitive integer!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: the input for the block size must be a possitive integer!" << '\n';
         return ;
     }
     size_t blocks_size = std::stoi(partitionInfo[2]);
 
     if (blocks_size == 0) {
-        std::cout << AnsiCodes::RED << "ERROR: the input for the block size must be a greater than 0!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: the input for the block size must be a greater than 0!" << '\n';
         return ;
     }
 
     if (size <= 3) {
-        std::cout << AnsiCodes::RED << "ERROR: please digit the quantity of blocks on the partition!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please digit the quantity of blocks on the partition!" << '\n';
         return ;
     }
 
     if (!isNumeric(partitionInfo[3])) {
-        std::cout << AnsiCodes::RED << "ERROR: the input for the blocks quantity must be a possitive integer!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: the input for the blocks quantity must be a possitive integer!" << '\n';
         return ;
     }
     size_t block_cant = std::stoi(partitionInfo[3]);
 
     if (block_cant == 0) {
-        std::cout << AnsiCodes::RED << "ERROR: the input for the blocks quantity must be a greater than 0!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: the input for the blocks quantity must be a greater than 0!" << '\n';
         return ;
     }
 
@@ -126,12 +126,12 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
     const int size = blockInfo.size();
 
     if (size <= 1) {
-        std::cout << AnsiCodes::RED << "ERROR: please input the block in which you'll like to read!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please input the block in which you'll like to read!" << '\n';
         return;
     }
 
     if (!isNumeric(blockInfo[1])) {
-        std::cout << AnsiCodes::RED << "ERROR: please digit a positive numeric value to indicate correctly the block you'll like to read." << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please digit a positive numeric value to indicate correctly the block you'll like to read." << '\n';
         return;
     }
     int blockPos = std::stoi(blockInfo[1]);
@@ -143,13 +143,13 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
     if (size > 2 ) {
         
         if (!isNumeric(blockInfo[2])) {
-            std::cout << AnsiCodes::RED << "ERROR: please input a positive numeric value for the starting position of the text!" << '\n';
+            std::cerr << AnsiCodes::RED << "ERROR: please input a positive numeric value for the starting position of the text!" << '\n';
             return;
         }
         offset = std::stoi(blockInfo[2]);
 
         if (offset > totalChars) {
-            std::cout << AnsiCodes::RED << "ERROR: the starting position for the block #" << blockPos << " should be lesser than " << totalChars << "!" << '\n';            
+            std::cerr << AnsiCodes::RED << "ERROR: the starting position for the block #" << blockPos << " should be lesser than " << totalChars << "!" << '\n';            
             return;
         }
 
@@ -158,18 +158,18 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
     if (size > 3) {
 
         if (!isNumeric(blockInfo[3])) {
-            std::cout << AnsiCodes::RED << "ERROR: please input a positive numeric as for how many characters you'll like to read!" << '\n';
+            std::cerr << AnsiCodes::RED << "ERROR: please input a positive numeric as for how many characters you'll like to read!" << '\n';
             return;
         }
         totalChars = std::stoi(blockInfo[3]);
 
         if (totalChars > text.size()) {
-            std::cout << AnsiCodes::RED << "ERROR: the ammount of chars to read exceeds the size of the text itself" << '\n';
+            std::cerr << AnsiCodes::RED << "ERROR: the ammount of chars to read exceeds the size of the text itself" << '\n';
             return;
         }
 
         if ((offset + totalChars) > text.size()) {
-            std::cout << AnsiCodes::RED << "ERROR: based on the offset of " << offset << " the ammount of chars to read exceeds the limit!" << '\n';
+            std::cerr << AnsiCodes::RED << "ERROR: based on the offset of " << offset << " the ammount of chars to read exceeds the limit!" << '\n';
             return ;
         }
 
@@ -191,12 +191,12 @@ const void Command_Line::selectPartition(const std::string &fileName)
 
     if (!partitioner->getPartitionName().empty()) {
         //change added to make sense of the 'close()' function asked.
-        std::cout << AnsiCodes::RED << "ERROR: please close the current partition before attempting to change into a new one" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please close the current partition before attempting to change into a new one" << '\n';
         return ;
     }
 
     if (!std::filesystem::exists(partitioner->getRoot() + "/" + partitioner->getPartitionName())) {
-        std::cout << AnsiCodes::RED << "ERROR: the partition doesn't exists!\n" << AnsiCodes::DEFAULT << "For reference you can use the command \'--help\'" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: the partition doesn't exists!\n" << AnsiCodes::DEFAULT << "For reference you can use the command \'--help\'" << '\n';
         return ;
     }
     partitioner->select(fileName);
@@ -246,24 +246,24 @@ const void Command_Line::writeInformation(const std::vector<std::string>& partit
     const int size = partitionInfo.size();
 
     if (size <= 1) {
-        std::cout << AnsiCodes::RED << "ERROR: please input the block in which you'll like to write something!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please input the block in which you'll like to write something!" << '\n';
         return;
     }
 
     if (!isNumeric(partitionInfo[1])) {
-        std::cout << AnsiCodes::RED << "ERROR: please digit a numeric value for the position to which you'll write." << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please digit a numeric value for the position to which you'll write." << '\n';
         return;
     }
     const int writtingPos = std::stoi(partitionInfo[1]);
 
     if (size <= 2) {
-        std::cout << AnsiCodes::RED << "ERROR: please input the data you'll store on this block!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please input the data you'll store on this block!" << '\n';
         return;
     }
     const auto text = getInnerString(originalCommand);   
 
     if (text.size() == 1) {
-        std::cout << AnsiCodes::RED << "ERROR: please type the data you need on the correct format!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please type the data you need on the correct format!" << '\n';
         return;
     }
 

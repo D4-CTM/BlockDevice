@@ -12,8 +12,8 @@ int main() {
             std::cout << AnsiCodes::YELLOW << "sudo@FileManager: ~" << commandLine.getPartitionName() << AnsiCodes::DEFAULT << " $ ";
             getline(std::cin, line);
             commandLine.doCommand(line);
-        } catch (const std::runtime_error& e) {
-            std::cerr << AnsiCodes::RED << e.what() << '\n';
+        } catch (const std::exception& e) {
+            std::cerr << AnsiCodes::RED << "ERROR: an error has occurred, please input correctly the data!" << '\n';
         }
     }
 

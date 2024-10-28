@@ -34,23 +34,23 @@ const void Disk_Partitioner::create(const std::string &partitionName, size_t &bl
 const bool Disk_Partitioner::write(const int &blockPos, const std::vector<unsigned char>& text)
 {
     if (partitionName.empty()) {
-        std::cout << AnsiCodes::RED << "ERROR: please selcet a partition first" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please selcet a partition first" << '\n';
         return false;
     }
 
     if (blockPos + 1 > block_Cant) {
-        std::cout << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
         return false;
     }
 
     if ((block_Size - 1) < text.size()) {
-        std::cout << AnsiCodes::RED << "ERROR: the blocks can only hold " << block_Size << " chars!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: the blocks can only hold " << (block_Size - 1) << " chars!" << '\n';
         return false;
     }
 
     std::fstream writer(ROOT + "/" + partitionName, std::ios::in | std::ios::binary | std::ios::out);
     if (!writer.is_open()) {
-        std::cout << AnsiCodes::RED << "ERROR: the file could't been open!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: the file could't been open!" << '\n';
         return false;
     }
 
@@ -93,19 +93,19 @@ const std::vector<unsigned char> Disk_Partitioner::readBlock(int &blockPos)
 {
     std::vector<unsigned char> cArray;
     if (partitionName.empty()) {
-        std::cout << AnsiCodes::RED << "ERROR: please select a partition first" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please select a partition first" << '\n';
         return cArray;
     }
 
     if (blockPos + 1> block_Cant) {
-        std::cout << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
         return cArray;
     }
 
     std::ifstream reader(ROOT + "/" + partitionName, std::ios::binary);
 
     if (!reader.is_open()) {
-        std::cout << AnsiCodes::RED << "ERROR: " << partitionName << " couldn't open" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: " << partitionName << " couldn't open" << '\n';
         return cArray;
     }
     const int readingPos = initialBlockPosition + (block_Size * blockPos);
@@ -115,7 +115,7 @@ const std::vector<unsigned char> Disk_Partitioner::readBlock(int &blockPos)
     reader.read(reinterpret_cast<char *>(&free), sizeof(bool));
 
     if (free) {
-        std::cout << AnsiCodes::RED << "ERROR: you haven't write anything on the block #" << blockPos;
+        std::cerr << AnsiCodes::RED << "ERROR: you haven't write anything on the block #" << blockPos;
         return cArray;
     }
 
