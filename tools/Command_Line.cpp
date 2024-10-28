@@ -262,11 +262,6 @@ const void Command_Line::writeInformation(const std::vector<std::string>& partit
     }
     const auto text = getInnerString(originalCommand);   
 
-    if (text.size() == 1) {
-        std::cerr << AnsiCodes::RED << "ERROR: please type the data you need on the correct format!" << '\n';
-        return;
-    }
-
     partitioner->write(writtingPos, text);
 }
 
@@ -294,6 +289,7 @@ const void Command_Line::helpMe()
     std::cout << '\t' << CLEAR << ": remove's every element on the screen, for a cleaner terminal." << '\n';
     std::cout << "\nPartition tools:" << '\n';
     std::cout << '\t' << CREATE_PARTITION << " <partition name> <blocks size> <block quantity>: creates a partition with the specified name, size of each block and how many blocks to create" << '\n';
+    std::cout << "\t\t\t\t   (IMPORTANT: the size of the partition itself could be greater than expected due to additional information needed to be stored within each block)" << '\n';;
     std::cout << '\t' << SELECT_PARTITION << " <partition name> | <..>: selects the partition with the specified name." << '\n';
     std::cout << "\t\t\t\t  " << "| go back to the root file \'~\' closing the current partition." << '\n';
     std::cout << '\t' << PARTITION_INFO << ": displays some basic information about the selected partition" << '\n'; 
