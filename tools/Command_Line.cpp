@@ -138,7 +138,7 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
     auto& text = partitioner->readBlock(blockPos);
 
     int offset = 0;
-    int totalChars = text.size();
+    int finalChar = text.size();
 
     if (size > 2 ) {
         
@@ -148,8 +148,8 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
         }
         offset = std::stoi(blockInfo[2]);
 
-        if (offset > totalChars) {
-            std::cerr << AnsiCodes::RED << "ERROR: the starting position for the block #" << blockPos << " should be lesser than " << totalChars << "!" << '\n';            
+        if (offset > finalChar) {
+            std::cerr << AnsiCodes::RED << "ERROR: the starting position for the block #" << blockPos << " should be lesser than " << finalChar << "!" << '\n';            
             return;
         }
 
@@ -161,14 +161,14 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
             std::cerr << AnsiCodes::RED << "ERROR: please input a positive numeric as for how many characters you'll like to read!" << '\n';
             return;
         }
-        totalChars = std::stoi(blockInfo[3]);
+        finalChar = std::stoi(blockInfo[3]);
 
-        if (totalChars > text.size()) {
+        if (finalChar > text.size()) {
             std::cerr << AnsiCodes::RED << "ERROR: the ammount of chars to read exceeds the size of the text itself" << '\n';
             return;
         }
 
-        if ((offset + totalChars) > text.size()) {
+        if (finalChar > text.size()) {
             std::cerr << AnsiCodes::RED << "ERROR: based on the offset of " << offset << " the ammount of chars to read exceeds the limit!" << '\n';
             return ;
         }
@@ -176,9 +176,14 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
     }
 
     std::cout << AnsiCodes::DEFAULT;
-    for (int i = offset; i < offset + totalChars; i++) {
+    int i = offset;
+    while (i != finalChar) {
         std::cout << text[i];
+        i = (offset > finalChar) ? i - 1 : i + 1;
+
+        if (i == finalChar) std::cout << text[i];
     }
+
     std::cout << '\n';
 }
 

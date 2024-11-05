@@ -75,8 +75,6 @@ const bool Disk_Partitioner::write(const int &blockPos, const std::vector<unsign
     return true;
 }
 
-
-
 const void Disk_Partitioner::select(const std::string &_partitionName)
 {
     std::ifstream reader(ROOT + "/" + _partitionName, std::ios::binary);
