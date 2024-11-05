@@ -108,7 +108,7 @@ const std::vector<unsigned char> Disk_Partitioner::readBlock(int &blockPos)
         std::cerr << AnsiCodes::RED << "ERROR: " << partitionName << " couldn't open" << '\n';
         return cArray;
     }
-    const int readingPos = initialBlockPosition + (block_Size * blockPos);
+    const int readingPos = initialBlockPosition + ((block_Size + sizeof(bool)) * blockPos);
     reader.seekg(readingPos, std::ios::beg);
 
     bool free;
