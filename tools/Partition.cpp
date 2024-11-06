@@ -113,7 +113,7 @@ const std::vector<unsigned char> Disk_Partitioner::readBlock(int &blockPos)
     reader.read(reinterpret_cast<char *>(&free), sizeof(bool));
 
     if (free) {
-        std::cerr << AnsiCodes::RED << "ERROR: you haven't write anything on the block #" << blockPos;
+        std::cerr << AnsiCodes::RED << "ERROR: you haven't write anything on the block #" << blockPos << '\n';
         return cArray;
     }
 

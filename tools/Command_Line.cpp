@@ -41,7 +41,7 @@ const void Command_Line::doCommand(const std::string &methods)
     
             selectPartition(lines[1]);
     
-        } else std::cerr << AnsiCodes::RED << "ERROR: Please input something the partition\'s name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+        } else std::cerr << AnsiCodes::RED << "ERROR: Please input something for the partition\'s name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
     
     } else if (lines[0] == PARTITION_INFO) {
     
@@ -138,7 +138,7 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
     auto& text = partitioner->readBlock(blockPos);
 
     int offset = 0;
-    int finalChar = text.size();
+    int totalChars = text.size();
 
     if (size > 2 ) {
         
@@ -148,8 +148,8 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
         }
         offset = std::stoi(blockInfo[2]);
 
-        if (offset > finalChar) {
-            std::cerr << AnsiCodes::RED << "ERROR: the starting position for the block #" << blockPos << " should be lesser than " << finalChar << "!" << '\n';            
+        if (offset > totalChars) {
+            std::cerr << AnsiCodes::RED << "ERROR: the starting position for the block #" << blockPos << " should not be greater than " << totalChars << "!" << '\n';            
             return;
         }
 
@@ -161,14 +161,14 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
             std::cerr << AnsiCodes::RED << "ERROR: please input a positive numeric as for how many characters you'll like to read!" << '\n';
             return;
         }
-        finalChar = std::stoi(blockInfo[3]);
+        totalChars = std::stoi(blockInfo[3]);
 
-        if (finalChar > text.size()) {
+        if (totalChars > text.size()) {
             std::cerr << AnsiCodes::RED << "ERROR: the ammount of chars to read exceeds the size of the text itself" << '\n';
             return;
         }
 
-        if (finalChar > text.size()) {
+        if ((offset + totalChars) >= text.size()) {
             std::cerr << AnsiCodes::RED << "ERROR: based on the offset of " << offset << " the ammount of chars to read exceeds the limit!" << '\n';
             return ;
         }
@@ -176,14 +176,9 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
     }
 
     std::cout << AnsiCodes::DEFAULT;
-    int i = offset;
-    while (i != finalChar) {
-        std::cout << text[i];
-        i = (offset > finalChar) ? i - 1 : i + 1;
-
-        if (i == finalChar) std::cout << text[i];
+    for (int i = 0; i < totalChars; i++) {
+        std::cout << text[offset + i];
     }
-
     std::cout << '\n';
 }
 
