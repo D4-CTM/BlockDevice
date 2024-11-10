@@ -230,7 +230,7 @@ std::vector<unsigned char> getInnerString(std::string str) {
 
     }
 
-    if (finalPos <= initialPos) return {' '};
+    if (finalPos <= initialPos) return {};
 
     std::vector<unsigned char> text;
 
@@ -262,6 +262,11 @@ const void Command_Line::writeInformation(const std::vector<std::string>& partit
     }
     const auto text = getInnerString(originalCommand);   
 
+    if (text.empty()) {
+        std::cerr << AnsiCodes::RED << "ERROR: please close the message you'll add using \" at the end" << '\n';
+        return ;
+    }
+
     partitioner->write(writtingPos, text);
 }
 
@@ -287,14 +292,15 @@ const void Command_Line::helpMe()
     std::cout << '\t' << LIST_ELEMENTS << ": display's a list of all partitions" << '\n';
     std::cout << '\t' << KILL << ": exit's this program" << '\n';
     std::cout << '\t' << CLEAR << ": remove's every element on the screen, for a cleaner terminal." << '\n';
-    std::cout << "\nPartition tools:" << '\n';
+    std::cout << '\n' << "Partition tools:" << '\n';
     std::cout << '\t' << CREATE_PARTITION << " <partition name> <blocks size> <block quantity>: creates a partition with the specified name, size of each block and how many blocks to create" << '\n';
     std::cout << "\t\t\t\t   (IMPORTANT: the size of the partition itself could be greater than expected due to additional information needed to be stored within each block)" << '\n';;
     std::cout << '\t' << SELECT_PARTITION << " <partition name> | <..>: selects the partition with the specified name." << '\n';
     std::cout << "\t\t\t\t  " << "| go back to the root file \'~\' closing the current partition." << '\n';
     std::cout << '\t' << PARTITION_INFO << ": displays some basic information about the selected partition" << '\n'; 
     std::cout << '\t' << WRITE_INFO << " <block> <data>: writed the data to the specified block, wrap the data between some \"\"" << '\n';
-    std::cout << "\t" << READ_INFO << " <block> <offset> <total chars>: reads the block specified starting from the offset until reaching the quantity of chars specified"<< '\n';
+    std::cout << '\t' << READ_INFO << " <block> <offset> <total chars>: reads the block specified starting from the offset until reaching the quantity of chars specified."<< '\n';
+    std::cout << "\t\t\t\t" << " if nothing but the block is provided we'll read everything on that block!";
 //    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';
 }

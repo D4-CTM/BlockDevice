@@ -7,6 +7,15 @@
 
 class Disk_Partitioner {
 private:
+    /*
+    *   FORMAT:
+    *   size_t block_Cant
+    *   size_t block_Size
+    *   [repeated block_Cant of times]
+    *   bool free
+    *   char[block_Size]
+    */
+    //Posicion inicial de los bloques
     const int initialBlockPosition = 2 * (sizeof(size_t));
     //Folder that includes each partition made by the user
     const std::string ROOT = "./Partitions";

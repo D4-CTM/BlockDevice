@@ -13,7 +13,7 @@ int main() {
             getline(std::cin, line);
             commandLine.doCommand(line);
         } catch (const std::exception& e) {
-            std::cerr << AnsiCodes::RED << "ERROR: an error has occurred, please input correctly the data!" << '\n';
+            std::cerr << AnsiCodes::RED << "ERROR: an error has occurred, please input the data correctly!" << '\n';
         }
     }
 
