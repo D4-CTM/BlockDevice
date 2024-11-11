@@ -15,7 +15,7 @@ private:
     *   bool free
     *   char[block_Size]
     */
-    //Posicion inicial de los bloques
+    //Initial position to read the blocks (to skip the block_Cant and block_Size)
     const int initialBlockPosition = 2 * (sizeof(size_t));
     //Folder that includes each partition made by the user
     const std::string ROOT = "./Partitions";

@@ -46,7 +46,6 @@ const bool Disk_Partitioner::write(const int &blockPos, const std::vector<unsign
     } else if (blockPos == block_Cant) {
         std::cerr << AnsiCodes::RED << "ERROR: we start counting the blocks from 0 to " << (block_Cant - 1) << '\n';
         return false;
-
     }
 
     if (block_Size < text.size()) {
@@ -100,8 +99,11 @@ const std::vector<unsigned char> Disk_Partitioner::readBlock(int &blockPos)
         return cArray;
     }
 
-    if (blockPos >= block_Cant) {
+    if (blockPos > block_Cant) {
         std::cerr << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
+        return cArray;
+    } else if (blockPos == block_Cant) {
+        std::cerr << AnsiCodes::RED << "ERROR: we start counting the blocks from 0 to " << (block_Cant - 1) << '\n';
         return cArray;
     }
 
