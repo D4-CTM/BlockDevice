@@ -177,7 +177,7 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
 
     std::cout << AnsiCodes::DEFAULT;
     for (int i = 0; i < totalChars; i++) {
-        std::cout << text[offset + i];
+        std::cout << std::hex << (int) text[offset + i] << ' ';
     }
     std::cout << '\n';
 }
