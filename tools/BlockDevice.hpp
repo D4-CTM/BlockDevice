@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 
-class Disk_Partitioner {
+class BlockDevice {
 private:
     /*
     *   FORMAT:
@@ -23,7 +23,7 @@ private:
     size_t block_Cant;
     size_t block_Size;
 public:
-    Disk_Partitioner() 
+    BlockDevice() 
     : partitionName(""), block_Cant(0), block_Size(0)
     {}
 
@@ -43,7 +43,7 @@ public:
         block_Size = 0;
     }
 
-    ~Disk_Partitioner()
+    ~BlockDevice()
     {}
 };
 

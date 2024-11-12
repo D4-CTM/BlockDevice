@@ -1,6 +1,6 @@
 #ifndef __COMMAND_LINE_HPP__
 #define __COMMAND_LINE_HPP__
-#include "Partition.hpp"
+#include "BlockDevice.hpp"
 #include <filesystem>
 
 class Command_Line {
@@ -11,22 +11,22 @@ private:
     const std::string HELP_ME = "--help";
     const std::string LIST_ELEMENTS = "lp";
     //Mathods to manage partitions
-    const std::string CREATE_PARTITION = "create";
-    const std::string SELECT_PARTITION = "select";
-    const std::string PARTITION_INFO = "info";
+    const std::string CREATE_BLOCK_DEVICE = "create";
+    const std::string SELECT_BLOCK_DEVICE = "select";
+    const std::string BLOCK_DEVICE_INFO = "info";
     const std::string WRITE_INFO = "write";
     const std::string READ_INFO = "read";
 
-    Disk_Partitioner* partitioner;
+    BlockDevice* blockDevice;
 public:
     Command_Line();
 
     const void doCommand(const std::string& methods);
-    const std::string getPartitionName() { return partitioner->getPartitionName().empty() ? "" : "/" + partitioner->getPartitionName(); }
+    const std::string getPartitionName() { return blockDevice->getPartitionName().empty() ? "" : "/" + blockDevice->getPartitionName(); }
     constexpr inline bool isRunning() { return run; }
 
     ~Command_Line() {
-        if (partitioner) delete partitioner;
+        if (blockDevice) delete blockDevice;
     }
 
 private:

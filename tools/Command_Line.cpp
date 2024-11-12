@@ -1,10 +1,10 @@
 #include "Command_Line.hpp"
 
 Command_Line::Command_Line()
-: partitioner(new Disk_Partitioner), run(true)
+: blockDevice(new BlockDevice()), run(true)
 {
-    if (!std::filesystem::exists(partitioner->getRoot())) {
-        std::filesystem::create_directory(partitioner->getRoot());
+    if (!std::filesystem::exists(blockDevice->getRoot())) {
+        std::filesystem::create_directory(blockDevice->getRoot());
     }
 }
 
@@ -31,27 +31,27 @@ const void Command_Line::doCommand(const std::string &methods)
     
         helpMe();
 
-    } else if (lines[0] == CREATE_PARTITION) {
+    } else if (lines[0] == CREATE_BLOCK_DEVICE) {
         
         createPartition(lines);
     
-    } else if (lines[0] == SELECT_PARTITION) {
+    } else if (lines[0] == SELECT_BLOCK_DEVICE) {
     
         if (lines.size() > 1 && !lines[1].empty()) {
     
             selectPartition(lines[1]);
     
-        } else std::cerr << AnsiCodes::RED << "ERROR: Please input something for the partition\'s name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+        } else std::cerr << AnsiCodes::RED << "ERROR: Please input something for the block\'s name!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
     
-    } else if (lines[0] == PARTITION_INFO) {
+    } else if (lines[0] == BLOCK_DEVICE_INFO) {
     
-        if (!partitioner->getPartitionName().empty()) {
+        if (!blockDevice->getPartitionName().empty()) {
             std::cout << AnsiCodes::GREEN;
 
-            partitioner->info();
+            blockDevice->info();
 
             std::cout << AnsiCodes::DEFAULT;
-        } else std::cerr << AnsiCodes::RED << "ERROR: Please select a partition first!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
+        } else std::cerr << AnsiCodes::RED << "ERROR: Please select a block first!\n" << AnsiCodes::DEFAULT << "For reference you could use the \'--help\' command" << '\n';
     
     } else if (lines[0] == WRITE_INFO) {
 
@@ -81,7 +81,7 @@ const bool isNumeric(const std::string& str) {
 const void Command_Line::createPartition(const std::vector<std::string>& partitionInfo) {
     const int size = partitionInfo.size();
     if (size <= 1) {
-        std::cerr << AnsiCodes::RED << "ERROR: please input the partition name!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please input the block name!" << '\n';
         return ;
     }
     std::string fileName = partitionInfo[1];
@@ -103,7 +103,7 @@ const void Command_Line::createPartition(const std::vector<std::string>& partiti
     }
 
     if (size <= 3) {
-        std::cerr << AnsiCodes::RED << "ERROR: please digit the quantity of blocks on the partition!" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please digit the quantity of blocks on the block!" << '\n';
         return ;
     }
 
@@ -118,7 +118,7 @@ const void Command_Line::createPartition(const std::vector<std::string>& partiti
         return ;
     }
 
-    partitioner->create(fileName, block_cant, blocks_size);
+    blockDevice->create(fileName, block_cant, blocks_size);
 }
 
 const void Command_Line::readInformation(const std::vector<std::string> &blockInfo)
@@ -135,7 +135,7 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
         return;
     }
     int blockPos = std::stoi(blockInfo[1]);
-    auto& text = partitioner->readBlock(blockPos);
+    auto& text = blockDevice->readBlock(blockPos);
 
     int offset = 0;
     int totalChars = text.size();
@@ -185,26 +185,26 @@ const void Command_Line::readInformation(const std::vector<std::string> &blockIn
 const void Command_Line::selectPartition(const std::string &fileName)
 {
     if (fileName == "..") {
-        partitioner->clearSuperblock();
+        blockDevice->clearSuperblock();
         return ;
     }
 
-    if (!partitioner->getPartitionName().empty()) {
+    if (!blockDevice->getPartitionName().empty()) {
         //change added to make sense of the 'close()' function asked.
-        std::cerr << AnsiCodes::RED << "ERROR: please close the current partition before attempting to change into a new one" << '\n';
+        std::cerr << AnsiCodes::RED << "ERROR: please close the current block before attempting to change into a new one" << '\n';
         return ;
     }
 
-    if (!std::filesystem::exists(partitioner->getRoot() + "/" + partitioner->getPartitionName())) {
-        std::cerr << AnsiCodes::RED << "ERROR: the partition doesn't exists!\n" << AnsiCodes::DEFAULT << "For reference you can use the command \'--help\'" << '\n';
+    if (!std::filesystem::exists(blockDevice->getRoot() + "/" + blockDevice->getPartitionName())) {
+        std::cerr << AnsiCodes::RED << "ERROR: the block doesn't exists!\n" << AnsiCodes::DEFAULT << "For reference you can use the command \'--help\'" << '\n';
         return ;
     }
-    partitioner->select(fileName);
+    blockDevice->select(fileName);
 }
 
 const void Command_Line::listElements()
 {
-    for (const auto& element : std::filesystem::directory_iterator(partitioner->getRoot())) {
+    for (const auto& element : std::filesystem::directory_iterator(blockDevice->getRoot())) {
         if (element.is_regular_file()) {
             std::cout << AnsiCodes::BLUE << std::filesystem::path(element).filename().string() << AnsiCodes::DEFAULT << '\t';
         }
@@ -267,7 +267,7 @@ const void Command_Line::writeInformation(const std::vector<std::string>& partit
         return ;
     }
 
-    partitioner->write(writtingPos, text);
+    blockDevice->write(writtingPos, text);
 }
 
 const std::vector<std::string> Command_Line::split(const std::string& command)
@@ -292,14 +292,14 @@ const void Command_Line::helpMe()
     std::cout << '\t' << LIST_ELEMENTS << ": display's a list of all partitions" << '\n';
     std::cout << '\t' << KILL << ": exit's this program" << '\n';
     std::cout << '\t' << CLEAR << ": remove's every element on the screen, for a cleaner terminal." << '\n';
-    std::cout << '\n' << "Partition tools:" << '\n';
-    std::cout << '\t' << CREATE_PARTITION << " <partition name> <blocks size> <block quantity>: creates a partition with the specified name, size of each block and how many blocks to create" << '\n';
-    std::cout << "\t\t\t\t   (IMPORTANT: the size of the partition itself could be greater than expected due to additional information needed to be stored within each block)" << '\n';;
-    std::cout << '\t' << SELECT_PARTITION << " <partition name> | <..>: selects the partition with the specified name." << '\n';
-    std::cout << "\t\t\t\t  " << "| go back to the root file \'~\' closing the current partition." << '\n';
-    std::cout << '\t' << PARTITION_INFO << ": displays some basic information about the selected partition" << '\n'; 
-    std::cout << '\t' << WRITE_INFO << " <block> <data>: writed the data to the specified block, wrap the data between some \"\"" << '\n';
-    std::cout << '\t' << READ_INFO << " <block> <offset> <total chars>: reads the block specified starting from the offset until reaching the quantity of chars specified."<< '\n';
+    std::cout << '\n' << "Block device tools:" << '\n';
+    std::cout << '\t' << CREATE_BLOCK_DEVICE << " <file name> <blocks size> <block quantity>: creates a block with the specified name, size of each block and how many blocks to create" << '\n';
+    std::cout << "\t\t\t\t   (IMPORTANT: the size of the block device itself could be greater than expected due to additional information needed to be stored)" << '\n';;
+    std::cout << '\t' << SELECT_BLOCK_DEVICE << " <file name> | <..>: selects the block with the specified name." << '\n';
+    std::cout << "\t\t\t\t  " << "| go back to the root file \'~\' closing the current block." << '\n';
+    std::cout << '\t' << BLOCK_DEVICE_INFO << ": displays some basic information about the selected file" << '\n'; 
+    std::cout << '\t' << WRITE_INFO << " <block position> <data>: writed the data to the specified block, wrap the data between some \"\"" << '\n';
+    std::cout << '\t' << READ_INFO << " <block position> <offset> <total characters>: reads the block specified starting from the offset until reaching the quantity of chars specified."<< '\n';
     std::cout << "\t\t\t\t" << " if nothing but the block is provided we'll read everything on that block!";
 //    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';

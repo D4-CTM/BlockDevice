@@ -1,6 +1,6 @@
-#include "Partition.hpp"
+#include "BlockDevice.hpp"
 
-const void Disk_Partitioner::create(const std::string &partitionName, size_t &block_Cant, size_t &block_Size)
+const void BlockDevice::create(const std::string &partitionName, size_t &block_Cant, size_t &block_Size)
 {
     std::ofstream writer(ROOT + "/" + partitionName, std::ios::binary);
 
@@ -33,7 +33,7 @@ const void Disk_Partitioner::create(const std::string &partitionName, size_t &bl
 /*
 *   we can use \0 to indicate the end of the char
 */
-const bool Disk_Partitioner::write(const int &blockPos, const std::vector<unsigned char>& text)
+const bool BlockDevice::write(const int &blockPos, const std::vector<unsigned char>& text)
 {
     if (partitionName.empty()) {
         std::cerr << AnsiCodes::RED << "ERROR: please selcet a partition first" << '\n';
@@ -79,7 +79,7 @@ const bool Disk_Partitioner::write(const int &blockPos, const std::vector<unsign
     return true;
 }
 
-const void Disk_Partitioner::select(const std::string &_partitionName)
+const void BlockDevice::select(const std::string &_partitionName)
 {
     std::ifstream reader(ROOT + "/" + _partitionName, std::ios::binary);
 
@@ -91,7 +91,7 @@ const void Disk_Partitioner::select(const std::string &_partitionName)
     }
 }
 
-const std::vector<unsigned char> Disk_Partitioner::readBlock(int &blockPos)
+const std::vector<unsigned char> BlockDevice::readBlock(int &blockPos)
 {
     std::vector<unsigned char> cArray;
     if (partitionName.empty()) {
@@ -137,11 +137,11 @@ const std::vector<unsigned char> Disk_Partitioner::readBlock(int &blockPos)
     return cArray;
 }
 
-const void Disk_Partitioner::info()
+const void BlockDevice::info()
 {
     std::cout << "|----------------------------------|" << '\n';
-    std::cout << "| Partition name: " << partitionName << '\n';
-    std::cout << "| Partition size: " << (2 * sizeof(size_t)) + (block_Cant * (block_Size + 1)) << '\n';
+    std::cout << "| File name: " << partitionName << '\n';
+    std::cout << "| File size: " << (2 * sizeof(size_t)) + (block_Cant * (block_Size + 1)) << '\n';
     std::cout << "| Block quantity: " << block_Cant << '\n';
     std::cout << "| Blocks size: " << (block_Size + 1) << '\n';
     std::cout << "|----------------------------------|" << '\n';

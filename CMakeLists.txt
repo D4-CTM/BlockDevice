@@ -10,8 +10,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/tools)
 
 add_executable(${PROJECT_NAME}  main.cpp
-                                ./tools/Partition.hpp
-                                ./tools/Partition.cpp
+                                ./tools/BlockDevice.hpp
+                                ./tools/BlockDevice.cpp
                                 ./tools/TextColor.h
                                 ./tools/Command_Line.hpp
                                 ./tools/Command_Line.cpp
