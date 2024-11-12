@@ -79,6 +79,11 @@ const bool isNumeric(const std::string& str) {
 }
 
 const void Command_Line::createPartition(const std::vector<std::string>& partitionInfo) {
+    if (!getPartitionName().empty()) {
+        std::cerr << AnsiCodes::RED << "ERROR: Please close the current block device!" << '\n';
+        return ;
+    }
+
     const int size = partitionInfo.size();
     if (size <= 1) {
         std::cerr << AnsiCodes::RED << "ERROR: please input the block name!" << '\n';
