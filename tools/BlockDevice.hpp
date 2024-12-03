@@ -1,50 +1,91 @@
-#ifndef __Disk_Partitioner_HPP__
-#define __Disk_Partitioner_HPP__
-#include "TextColor.h"
-#include <iostream>
-#include <fstream>
-#include <vector>
+#ifndef __BLOCK_DEVICE_HPP__
+#define __BLOCK_DEVICE_HPP__
+#include "Exceptions.h"
+#include <filesystem>
+#include <cstdint>
 
 class BlockDevice {
 private:
-    /*
-    *   FORMAT:
-    *   size_t block_Cant
-    *   size_t block_Size
-    *   [repeated block_Cant of times]
-    *   bool free
-    *   char[block_Size]
-    */
-    //Initial position to read the blocks (to skip the block_Cant and block_Size)
-    const int initialBlockPosition = 2 * (sizeof(size_t));
-    //Folder that includes each partition made by the user
-    const std::string ROOT = "./Partitions";
-    std::string partitionName;
-    size_t block_Cant;
-    size_t block_Size;
+    struct Inode {
+        char filename[64];
+        uint64_t offset[8];
+        uint64_t size;
+
+        Inode(const std::string& _filename)
+        : size(-1)
+        {
+            _filename.copy(filename, 64);
+            for (int i = 0; i < 8; i++) {
+                offset[i] = -1;
+            }
+        }
+    };
+private:
+    struct Block {
+        std::string bits;
+        bool free;
+
+        Block()
+        : free(false), bits("")
+        {}
+
+        Block(const std::string& data, size_t size)
+        : free(false), bits(data)
+        { bits.resize(size); }
+
+        Block(const size_t size) 
+        : free(true), bits("")
+        { bits.resize(size); }
+    };
+private:
+    struct Superblock {
+        size_t blockSize;
+        size_t blockCount;
+
+        Superblock()
+        : blockSize(-1), blockCount(-1)
+        {}
+
+        Superblock(size_t _blockSize, size_t _blockCount)
+        : blockSize(_blockSize), blockCount(_blockCount)
+        {}
+
+        void clear() {
+            blockSize = -1;
+            blockCount = -1;
+        }
+
+        size_t calculateOffsetOf(size_t blockPos) {
+            return sizeof(Superblock) + ((blockSize + sizeof(bool)) * blockPos);
+        }
+        
+    };
+private:
+    using Path = std::filesystem::path;
+
+    std::string deviceName;
+    const Path ROOT;
+
+    Superblock superblock;
 public:
-    BlockDevice() 
-    : partitionName(""), block_Cant(0), block_Size(0)
-    {}
-
-    const void create(const std::string& partitionName, size_t& block_Cant, size_t& block_Size);
-    const bool write(const int& blockPos, const std::vector<unsigned char>& bytes);
-    const void select(const std::string& partitionName);
-    const std::vector<unsigned char> readBlock(int& blockPos);
-    const void info();
-
-    const inline std::string getPartitionName() { return partitionName; }
-    const inline std::string getRoot() { return ROOT; }
-    constexpr inline size_t getBlockCant() { return block_Cant; }
-    constexpr inline size_t getBlockSize() { return block_Size; }
-    const inline void clearSuperblock() {
-        partitionName = "";
-        block_Cant = 0;
-        block_Size = 0;
+    BlockDevice()
+    : ROOT("devices"), deviceName("")
+    {
+        if (!std::filesystem::exists(ROOT)) {
+            std::filesystem::create_directory(ROOT);
+        }
     }
+    void deviceInfo();
 
-    ~BlockDevice()
-    {}
+    bool create(const std::string& deviceName, size_t blockSize, size_t blockCount);
+    bool close();
+    bool open(const std::string& deviceName);
+    bool writeBlock(size_t blockPos, const std::string& data);
+    std::string readBlock(size_t blockPos);
+
+    inline Path getRootDirectory() { return ROOT; }
+    inline Path getDevicePath() { return (isDeviceOpen()) ? ROOT / deviceName : ROOT; }
+    inline bool isDeviceOpen() { return !deviceName.empty(); }
 };
 
-#endif  //__Disk_Partitioner_HPP__
+#endif// __BLOCK_DEVICE_HPP__

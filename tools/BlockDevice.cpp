@@ -1,148 +1,130 @@
 #include "BlockDevice.hpp"
+#include <fstream>
 
-const void BlockDevice::create(const std::string &partitionName, size_t &block_Cant, size_t &block_Size)
+void BlockDevice::deviceInfo()
 {
-    std::ofstream writer(ROOT + "/" + partitionName, std::ios::binary);
-
-    if (writer.is_open()) 
-    {
-        writer.write(reinterpret_cast<char *>(&block_Cant), sizeof(size_t));
-        writer.write(reinterpret_cast<char *>(&block_Size), sizeof(size_t));
-
-        bool free = true;
-        unsigned char* bytes = new unsigned char[block_Size];;
-
-        for (int i = 0; i < block_Size; i++) {
-            bytes[i] = '`';
-        }
-
-        for (int i = 0; i < block_Cant; i++) {
-            writer.write(reinterpret_cast<char *>(&free), sizeof(bool));
-            writer.write(reinterpret_cast<char *>(&bytes), sizeof(unsigned char) * (block_Size));
-        }
-
-        if (bytes) {
-            delete [] bytes;
-            bytes = nullptr;
-        }
-
-        writer.close();
+    if (!isDeviceOpen()) {
+        throw Warning("Please open a block device first.");
     }
+    size_t deviceSize = sizeof(superblock) + ((superblock.blockSize + sizeof(bool)) * superblock.blockCount);
 
+    std::cout << AnsiCodes::BLUE;
+    std::cout << "|--------------------------" << '\n';
+    std::cout << "| Device name: " + deviceName << '\n';
+    std::cout << "| Device size: " << deviceSize << '\n';
+    std::cout << "| Block quantity: " << superblock.blockCount << '\n';
+    std::cout << "| Individual block size: " << (superblock.blockSize + sizeof(bool)) << '\n';
+    std::cout << "| Superblock size: " << sizeof(Superblock) << '\n';
+    std::cout << "|--------------------------" << '\n';
+    std::cout << AnsiCodes::DEFAULT << '\n';
 }
-/*
-*   we can use \0 to indicate the end of the char
-*/
-const bool BlockDevice::write(const int &blockPos, const std::vector<unsigned char>& text)
+
+bool BlockDevice::create(const std::string &deviceName, size_t blockSize, const size_t blockCount)
 {
-    if (partitionName.empty()) {
-        std::cerr << AnsiCodes::RED << "ERROR: please selcet a partition first" << '\n';
-        return false;
+    std::ofstream file(ROOT / deviceName, std::ios::binary);
+    if (!file) {
+        throw FileCrash(deviceName);
     }
 
-    if (blockPos > block_Cant) {
-        std::cerr << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
-        return false;
-    } else if (blockPos == block_Cant) {
-        std::cerr << AnsiCodes::RED << "ERROR: we start counting the blocks from 0 to " << (block_Cant - 1) << '\n';
-        return false;
+    Superblock superblock(blockSize, blockCount);
+    file.write(reinterpret_cast<const char *>(&superblock), sizeof(Superblock));
+    Block block(blockSize);
+    for (int i = 0; i < blockCount; i++) {
+        file.write(reinterpret_cast<const char *>(&block.free), sizeof(bool));
+        file.write(block.bits.data(), blockSize);
     }
 
-    if (block_Size < text.size()) {
-        std::cerr << AnsiCodes::BRIGHT_MAGENTA << "WARNING: you'll only save " << (block_Size) << " chars!" << '\n' << '\n';
-    }
-
-    std::fstream writer(ROOT + "/" + partitionName, std::ios::in | std::ios::binary | std::ios::out);
-    if (!writer.is_open()) {
-        std::cerr << AnsiCodes::RED << "ERROR: the file could't been open!" << '\n';
-        return false;
-    }
-
-    const int writtingPos = initialBlockPosition + ((block_Size + 1) * blockPos);
-    writer.seekp(writtingPos, std::ios::beg);
-
-    bool free = false;
-    writer.write(reinterpret_cast<char *>(&free), sizeof(bool));
-    unsigned char data[block_Size];
-    
-    for (int i = 0; i < block_Size; i++) {
-
-        if (i < text.size()) {
-            data[i] = text[i];
-        } else data[i] = '`';
-
-    }
-
-    writer.write(reinterpret_cast<char *>(&data), sizeof(unsigned char) * (block_Size));
-
-    writer.close();
+    file.close();
     return true;
 }
 
-const void BlockDevice::select(const std::string &_partitionName)
+bool BlockDevice::open(const std::string &deviceName)
 {
-    std::ifstream reader(ROOT + "/" + _partitionName, std::ios::binary);
-
-    if (reader.is_open()) {
-        reader.read(reinterpret_cast<char *>(&block_Cant), sizeof(size_t));
-        reader.read(reinterpret_cast<char *>(&block_Size), sizeof(size_t));
-        partitionName = _partitionName;
-        reader.close();
+    if (isDeviceOpen()) {
+        throw Warning("Please close current block device before opening another one!");
     }
+
+    this->deviceName = deviceName;
+    std::ifstream file((getDevicePath()), std::ios::binary);
+    if (!file) {
+        this->deviceName = "";
+        throw FileCrash(deviceName);
+    }
+
+    file.seekg(0, std::ios::beg);
+    file.read(reinterpret_cast<char *>(&superblock), sizeof(Superblock));
+
+    file.close();
+    return true;
 }
 
-const std::vector<unsigned char> BlockDevice::readBlock(int &blockPos)
+bool BlockDevice::close()
 {
-    std::vector<unsigned char> cArray;
-    if (partitionName.empty()) {
-        std::cerr << AnsiCodes::RED << "ERROR: please select a partition first" << '\n';
-        return cArray;
-    }
+    deviceName = "";
+    superblock.clear();
 
-    if (blockPos > block_Cant) {
-        std::cerr << AnsiCodes::RED << "ERROR: " << partitionName << " only has " << block_Cant << " blocks!" << '\n';
-        return cArray;
-    } else if (blockPos == block_Cant) {
-        std::cerr << AnsiCodes::RED << "ERROR: we start counting the blocks from 0 to " << (block_Cant - 1) << '\n';
-        return cArray;
-    }
-
-    std::ifstream reader(ROOT + "/" + partitionName, std::ios::binary);
-
-    if (!reader.is_open()) {
-        std::cerr << AnsiCodes::RED << "ERROR: " << partitionName << " couldn't open" << '\n';
-        return cArray;
-    }
-    const int readingPos = initialBlockPosition + ((block_Size + 1) * blockPos);
-    reader.seekg(readingPos, std::ios::beg);
-
-    bool free;
-    reader.read(reinterpret_cast<char *>(&free), sizeof(bool));
-
-    if (free) {
-        std::cerr << AnsiCodes::RED << "ERROR: you haven't write anything on the block #" << blockPos << '\n';
-        return cArray;
-    }
-
-    unsigned char data[block_Size];
-    reader.read(reinterpret_cast<char *>(&data), sizeof(unsigned char) * (block_Size));
-    reader.close();
-
-    for (int i = 0; i < block_Size; i++) {
-        if (data[i] != '`') {
-            cArray.push_back(data[i]);
-        }
-    }
-
-    return cArray;
+    return true;
 }
 
-const void BlockDevice::info()
+bool BlockDevice::writeBlock(size_t blockPos, const std::string &data)
 {
-    std::cout << "|----------------------------------|" << '\n';
-    std::cout << "| File name: " << partitionName << '\n';
-    std::cout << "| File size: " << (2 * sizeof(size_t)) + (block_Cant * (block_Size + 1)) << '\n';
-    std::cout << "| Block quantity: " << block_Cant << '\n';
-    std::cout << "| Blocks size: " << (block_Size + 1) << '\n';
-    std::cout << "|----------------------------------|" << '\n';
+    if (!isDeviceOpen()) {
+        throw Warning("Please open any of the devices first.", true);
+    }
+
+    if (blockPos == superblock.blockCount) {
+        throw Warning("The device starts counting from 0 instead of 1");
+    }
+
+    if (blockPos > superblock.blockCount) {
+        throw Crash("The device only counts with " + std::to_string(superblock.blockCount) + " blocks!");
+    }
+
+    size_t offset = superblock.calculateOffsetOf(blockPos);
+    std::fstream file(getDevicePath(), std::ios::in | std::ios::out | std::ios::binary);
+    if (!file) {
+        throw FileCrash(deviceName);
+    }
+
+    file.seekp(offset, std::ios::beg);
+    Block block(data, superblock.blockSize);
+    file.write(reinterpret_cast<const char *>(&block.free), sizeof(bool));
+    if (!block.free)  {
+        file.close();
+        return false;
+    }
+    file.write(block.bits.data(), superblock.blockSize);
+    file.close();
+    return true;
+}
+
+std::string BlockDevice::readBlock(size_t blockPos)
+{
+    if (!isDeviceOpen()) {
+        throw Warning("Please open any of the devices first.", true);
+    }
+
+    if (blockPos == superblock.blockCount) {
+        throw Warning("The device starts counting from 0 instead of 1");
+    }
+
+    if (blockPos > superblock.blockCount) {
+        throw Crash("The device only counts with " + std::to_string(superblock.blockCount) + " blocks!");
+    }
+    size_t offset = superblock.calculateOffsetOf(blockPos);
+    std::ifstream file(getDevicePath(), std::ios::binary);
+    if (!file) {
+        throw FileCrash(deviceName);
+    }
+
+    file.seekg(offset, std::ios::beg);
+    Block block;
+    file.read(reinterpret_cast<char *>(&block.free), sizeof(bool));
+    if (block.free) {
+        throw Warning("The block #" + std::to_string(blockPos) + " is empty!");
+    }
+    block.bits.resize(superblock.blockSize);
+    file.read(block.bits.data(), superblock.blockSize);
+
+    return block.bits;
 }

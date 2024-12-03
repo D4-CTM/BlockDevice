@@ -15,4 +15,4 @@ Input the next commands after cloning, forking or unzipping the project
 2. cmake --build build/
 3. ./build/FileManager
 
-if there was no issue the terminal sould be yellow and after inputing --help you'll get the command list.
+if there was no issue the terminal sould be green and after inputing --help you'll get the command list.
