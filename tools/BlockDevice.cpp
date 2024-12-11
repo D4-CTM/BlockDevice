@@ -65,6 +65,21 @@ bool BlockDevice::create(const std::string &deviceName, size_t blockSize, const 
         throw CloseDevice();
     }
 
+    const uint32_t bytesMapSpace = 1 + (blockCount/blockSize);
+    const uint32_t inodesInitialBlock = 1 + bytesMapSpace;
+    const uint32_t inodesPerBlock = blockSize/sizeof(Inode);
+    if (inodesPerBlock == 0) {
+        throw Crash("to little space for the inodes, please make, at least, a block device with the block size of: " + std::to_string(sizeof(Inode)));
+    }
+
+    const uint32_t blocksRequiered = 256/inodesPerBlock;
+    if (blocksRequiered >= blockCount) {
+        throw Crash("Not enough space for the files. With the block size of " + std::to_string(blockSize) + " you need, at least, " + std::to_string(blocksRequiered + 8) + " blocks.");
+    }
+    if (blockCount > (blocksRequiered * inodesPerBlock) * 8) {
+        throw Warning("Maximum space needed for this block device (" + std::to_string((blocksRequiered * inodesPerBlock) * 8) + ") exceeded!\n\tPlease input less blocks!");
+    }
+
     std::ofstream file(ROOT / deviceName, std::ios::binary);
     if (!file) {
         throw FileCrash(deviceName);
@@ -78,11 +93,6 @@ bool BlockDevice::create(const std::string &deviceName, size_t blockSize, const 
         file.write(block.data(), blockSize);
     }
     
-    const uint32_t bytesMapSpace = 1 + (blockCount/blockSize);
-    const uint32_t inodesInitialBlock = 1 + bytesMapSpace;
-    const uint32_t inodesPerBlock = blockSize/sizeof(Inode);
-    const uint32_t blocksRequiered = 256/inodesPerBlock;
-
     Superblock superblock(inodesPerBlock, inodesInitialBlock, (inodesInitialBlock + blocksRequiered), blocksRequiered);
     file.seekp(header.calculateOffsetOf(0));
     file.write(reinterpret_cast<const char *>(&superblock), sizeof(Superblock));
@@ -385,7 +395,7 @@ void BlockDevice::listFiles()
 void BlockDevice::format()
 {
     if (!isDeviceOpen()) {
-        throw OpenDevice();;
+        throw OpenDevice();
     }
 
     std::fstream file(getDevicePath(), std::ios::in | std::ios::out | std::ios::binary);
