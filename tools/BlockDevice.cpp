@@ -1,5 +1,4 @@
 #include "BlockDevice.hpp"
-#include <fstream>
 
 bool compare(std::string& string, const char charArray[], size_t charArraySize) {
     if (string.size() != charArraySize) return false;
@@ -128,11 +127,11 @@ bool BlockDevice::writeBlock(size_t blockPos, const std::string &data)
     }
 
     if (blockPos == header.blockCount) {
-        throw Warning("The device starts counting from 0 instead of 1");
+        throw Warning("the device starts counting from 0 instead of 1");
     }
 
     if (blockPos > header.blockCount) {
-        throw Crash("The device only counts with " + std::to_string(header.blockCount) + " blocks!");
+        throw Crash("the device only counts with " + std::to_string(header.blockCount) + " blocks!");
     }
 
     size_t offset = header.calculateOffsetOf(blockPos);
@@ -155,11 +154,11 @@ BlockDevice::Block BlockDevice::readBlock(size_t blockPos)
     }
 
     if (blockPos == header.blockCount) {
-        throw Warning("The device starts counting from 0 instead of 1");
+        throw Warning("the device starts counting from 0 instead of 1");
     }
 
     if (blockPos > header.blockCount) {
-        throw Crash("The device only counts with " + std::to_string(header.blockCount) + " blocks!");
+        throw Crash("the device only counts with " + std::to_string(header.blockCount) + " blocks!");
     }
 
     size_t offset = header.calculateOffsetOf(blockPos);
@@ -221,14 +220,14 @@ void BlockDevice::removeFile(std::string &filename)
     std::pair<int, int> inodePos = getInodePos(superblock, filename);
     if (inodePos.first == -1 || inodePos.second == -1) {
         file.close();
-        throw Crash("The file couldn't been reach nor created.");
+        throw Crash("the file couldn't been reach nor created.");
     }
 
     Inode inode[superblock.inodesPerBlock];
     file.seekg(header.calculateOffsetOf(inodePos.first), std::ios::beg);
     file.read(reinterpret_cast<char *>(&inode), sizeof(Inode) * superblock.inodesPerBlock);
     if (inode[inodePos.second].free) {
-        throw Crash("The file doesn't exist.");
+        throw Crash("the file doesn't exist.");
     }
     const bool free = true;
     inode[inodePos.second].free = free;
@@ -255,7 +254,7 @@ void BlockDevice::writeFile(std::string &filename, std::string &text)
     const int maxStringIterations = 1 + (text.length()/header.blockSize);
 
     if (maxStringIterations >= 8) {
-        throw Warning("The text inputed is too big to be stored.");
+        throw Warning("the text inputed is too big to be stored.");
     }
     const int fileSize = text.length();
     int stringIteration = 0;
@@ -271,7 +270,7 @@ void BlockDevice::writeFile(std::string &filename, std::string &text)
     std::pair<int, int> inodePos = getInodePos(superblock, filename);
     if (inodePos.first == -1 || inodePos.second == -1) {
         file.close();
-        throw Crash("The file couldn't been reach nor created.");
+        throw Crash("the file couldn't been reach nor created.");
     }
 
     file.seekg(header.calculateOffsetOf(inodePos.first), std::ios::beg);
@@ -328,14 +327,14 @@ BlockDevice::Block BlockDevice::getContent(std::string &filename)
     std::pair<int, int> inodePos = getInodePos(superblock, filename);
     if (inodePos.first == -1 || inodePos.second == -1) {
         file.close();
-        throw Crash("The file couldn't been reach nor created.");
+        throw Crash("the file couldn't been reach nor created.");
     }
 
     Inode inode[superblock.inodesPerBlock];
     file.seekg(header.calculateOffsetOf(inodePos.first), std::ios::beg);
     file.read(reinterpret_cast<char *>(&inode), sizeof(Inode) * superblock.inodesPerBlock);
     if (inode[inodePos.second].free) {
-        throw Crash("The file doesn't exist.");
+        throw Crash("the file doesn't exist.");
     }
 
     Block block;

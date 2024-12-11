@@ -3,6 +3,7 @@
 #include "Exceptions.h"
 #include <filesystem>
 #include <cstdint>
+#include <fstream>
 
 class BlockDevice {
 private:

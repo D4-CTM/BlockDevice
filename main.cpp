@@ -26,6 +26,8 @@ void help() {
     std::cout << "\trm <filename>: deletes the specified file from the device." << '\n';    
     std::cout << "\tcat <filename>: display the content on a specific file." << '\n';
     std::cout << "\thexdump <filename>: display the content on a specific file on hex values." << '\n';
+    std::cout << "\tcout <file 1> <file 2>: extracts a file (file 1) from the block device into a file (file 2) on the local system on the given path." << '\n';
+    std::cout << "\tcin <file 1> <file 2>: imports a file (file 1) from the system into the block device (file 2)." << '\n';
 //    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';
 }
@@ -38,15 +40,15 @@ void createBlockDevice(std::istringstream& iss, BlockDevice& blockDevice) {
     iss >> filename >> blockSize >> blockCount;
     
     if (filename.empty()) {
-        throw Crash("Please input the name of the device!");
+        throw Crash("please input the name of the device!");
     }
 
     if (blockSize < 512) {
-        throw Warning("The block size should be, at least, 512 bytes");
+        throw Warning("the block size should be, at least, 512 bytes");
     }
 
     if (blockCount < 100) {
-        throw Warning("The quantity of blocks on every device should be, at least, of a 100");
+        throw Warning("the quantity of blocks on every device should be, at least, of a 100");
     }
 
     blockDevice.create(filename, blockSize, blockCount);
@@ -57,7 +59,7 @@ void openBlockDevice(std::istringstream& iss, BlockDevice& blockDevice) {
     iss >> filename;
 
     if (filename.empty()) {
-        throw Crash("Please input the name of the device!");
+        throw Crash("please input the name of the device!");
     }
 
     blockDevice.open(filename);
@@ -67,14 +69,14 @@ bool writeOnDevice(std::istringstream& iss, BlockDevice& blockDevice) {
     int blockPos = -1;
     iss >> blockPos;
     if (blockPos < 0) {
-        throw Warning("Please input a valid position in which you'll write the data!", true);
+        throw Warning("please input a valid position in which you'll write the data!", true);
     }
 
     std::string info;
     char quote;
     iss >> quote;
     if (quote != '"') {
-        throw Warning("Please use \" to mark the beginning of your text.");
+        throw Warning("please use \" to mark the beginning of your text.");
     }
     std::getline(iss, info, quote);
 
@@ -85,7 +87,7 @@ void readOnDevice(std::istringstream& iss, BlockDevice& blockDevice) {
     int blockPos = -1;
     iss >> blockPos;
     if (blockPos < 0) {
-        throw Warning("Please input a valid block position", true);
+        throw Warning("please input a valid block position", true);
     }
 
     auto block = blockDevice.readBlock(blockPos);
@@ -94,7 +96,7 @@ void readOnDevice(std::istringstream& iss, BlockDevice& blockDevice) {
 
     iss >> offset >> readLength;
     if (offset < 0 || readLength < 0) {
-        throw Warning("The offset and size of reading should be greater than 0");
+        throw Warning("the offset and size of reading should be greater than 0");
     }
 
     std::cout << AnsiCodes::DEFAULT;
@@ -118,22 +120,22 @@ void writeFile(std::istringstream& iss, BlockDevice& blockDevice) {
 
     iss >> filename;
     if (filename.empty()) {
-        throw Warning("Please input the name of the file.");
+        throw Warning("please input the name of the file.");
     }
 
     if (filename.length() > 64) {
-        throw Warning("Please limit the name of the file to just 64 bytes.");
+        throw Warning("please limit the name of the file to just 64 bytes.");
     }
 
     char quote;
     iss >> quote;
     if (quote != '"') {
-        throw Warning("Please use \" to mark the beginning of your text.");
+        throw Warning("please use \" to mark the beginning of your text.");
     }
     
     std::getline(iss, text, quote);
     if (text.empty()) {
-        throw Warning("Please input the text you'll send into the file.");
+        throw Warning("please input the text you'll send into the file.");
     }
 
     blockDevice.writeFile(filename, text);
@@ -143,7 +145,7 @@ void removeFile(std::istringstream& iss, BlockDevice& BlockDevice) {
     std::string filename = "";
     iss >> filename;
     if (filename.empty()) {
-        throw Warning("Please input the filename");
+        throw Warning("please input the filename");
     }
 
     BlockDevice.removeFile(filename);
@@ -153,7 +155,7 @@ void getFileContent(std::istringstream& iss, BlockDevice& BlockDevice) {
     std::string filename = "";
     iss >> filename;
     if (filename.empty()) {
-        throw Warning("Please input the filename");
+        throw Warning("please input the filename");
     }
 
     std::cout << BlockDevice.getContent(filename).bits << '\n';
@@ -163,7 +165,7 @@ void getHexFileContent(std::istringstream& iss, BlockDevice& BlockDevice) {
     std::string filename = "";
     iss >> filename;
     if (filename.empty()) {
-        throw Warning("Please input the filename");
+        throw Warning("please input the filename");
     }
 
     auto blocks = BlockDevice.getContent(filename);
@@ -172,6 +174,48 @@ void getHexFileContent(std::istringstream& iss, BlockDevice& BlockDevice) {
         std::cout << std::hex << (int) blocks[i] << ' ';
     }
     std::cout << '\n';
+}
+
+void copyOut(std::istringstream& iss, BlockDevice& blockDevice) {
+    std::string deviceFile = "";
+    std::string outerFile = "";
+
+    iss >> deviceFile >> outerFile;
+    if (deviceFile.empty()) {
+        throw Warning("please input the name of the file on the device.");
+    }
+
+    if (outerFile.empty()) {
+        throw Warning("please input the name of the file in which you'll extract the data.");
+    }
+
+    auto block = blockDevice.getContent(deviceFile);
+    std::ofstream file(outerFile, std::ios::trunc);
+    file << block.bits;
+    file.close();
+}
+
+void copyIn(std::istringstream& iss, BlockDevice& blockDevice) {
+    std::string deviceFile = "";
+    std::string outerFile = "";
+
+    iss >> outerFile >> deviceFile;
+    if (deviceFile.empty()) {
+        throw Warning("please input the name of the file on the device.");
+    }
+
+    if (outerFile.empty()) {
+        throw Warning("please input the name of the file in which you'll extract the data.");
+    }
+
+    std::ifstream file(outerFile);
+    std::string line = "";
+    std::string text = "";
+    while (getline(file, line)) {
+        text += line;
+    }
+
+    blockDevice.writeFile(deviceFile, text);
 }
 
 int main() {
@@ -222,6 +266,10 @@ int main() {
                 getFileContent(iss, blockDevice);
             } else if (command == "hexdump") {
                 getHexFileContent(iss, blockDevice);
+            } else if (command == "cout") {
+                copyOut(iss, blockDevice);
+            } else if (command == "cin") {
+                copyIn(iss, blockDevice);
             }
 
             std::cin.clear();
