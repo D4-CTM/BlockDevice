@@ -308,6 +308,43 @@ void BlockDevice::writeFile(std::string &filename, std::string &text)
     if (stringIteration < maxStringIterations) AnsiCodes::showError("There wasn't enough space for the whole text, it was cropped.");
 }
 
+void printFilename(const char* filename) {
+    std::cout << "\'";
+    for (int i = 0; i < 64 ; i++) {
+        if (filename[i] == ' ') break;
+        std::cout << filename[i];
+    }
+    std::cout << "\'\t";
+}
+
+void BlockDevice::listFiles()
+{
+    if (!isDeviceOpen()) {
+        throw OpenDevice();
+    }
+
+    std::ifstream file(getDevicePath(), std::ios::binary);
+    if (!file) {
+        throw FileCrash(deviceName);
+    }
+
+    file.seekg(header.calculateOffsetOf(0), std::ios::beg);
+    Superblock superblock;
+    file.read(reinterpret_cast<char *>(&superblock), sizeof(Superblock));
+    Inode inode[superblock.inodesPerBlock];
+    std::cout << AnsiCodes::BLUE;
+    for (int i = superblock.inodesInitialBlockPos; i < superblock.inodesFinalBlockPos; i++) {
+        file.seekg(header.calculateOffsetOf(i), std::ios::beg);
+        file.read(reinterpret_cast<char *>(&inode), sizeof(Inode) * superblock.inodesPerBlock);
+        for (int j = 0; j < superblock.inodesPerBlock; j++) {
+            if (inode[j].free) continue;
+            printFilename(inode[j].filename);
+        }
+    }
+    std::cout << AnsiCodes::DEFAULT << '\n';
+    file.close();
+}
+
 void BlockDevice::format()
 {
     if (!isDeviceOpen()) {

@@ -184,7 +184,7 @@ int main() {
             } else if (command == "superblock") {
                 blockDevice.showSuperblockInfo();
             } else if (command == "ls") {
-//                blockDevice.listFiles();
+                blockDevice.listFiles();
             } else if (command == "writef") {
                 writeFile(iss, blockDevice);
             } else if (command == "format") {
