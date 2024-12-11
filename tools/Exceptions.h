@@ -42,7 +42,21 @@ public:
 class FileCrash : public Crash {
 public:
     FileCrash(const std::string& filename) 
-    : Crash("ERROR: there was an error trying to open " + filename + "!")
+    : Crash("There was an error trying to open " + filename + "!")
+    {}
+};
+
+class CloseDevice : public Warning {
+public:
+    CloseDevice(bool defaultSuggestion = false)
+    : Warning("Please close the current block device!", defaultSuggestion)
+    {}
+};
+
+class OpenDevice : public Warning {
+public:
+    OpenDevice(bool defaultSuggestion = false)
+    : Warning("Please open a device first!", defaultSuggestion)
     {}
 };
 

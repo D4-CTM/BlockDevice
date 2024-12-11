@@ -6,47 +6,46 @@
 
 class BlockDevice {
 private:
-    struct Inode {
-        char filename[64];
-        uint64_t offset[8];
-        uint64_t size;
-
-        Inode(const std::string& _filename)
-        : size(-1)
-        {
-            _filename.copy(filename, 64);
-            for (int i = 0; i < 8; i++) {
-                offset[i] = -1;
-            }
-        }
-    };
-private:
     struct Block {
         std::string bits;
-        bool free;
 
         Block()
-        : free(false), bits("")
+        : bits("")
         {}
 
         Block(const std::string& data, size_t size)
-        : free(false), bits(data)
+        : bits(data)
         { bits.resize(size); }
 
         Block(const size_t size) 
-        : free(true), bits("")
+        : bits("")
         { bits.resize(size); }
+
+        inline const size_t size() { return bits.size(); }
+        inline char* data() { return bits.data(); }
+
+        char& operator[](int pos) {
+            return bits[pos];
+        }
+
+        std::string operator<<(const Block& block) {
+            return bits + " " + block.bits;
+        }
+
+        std::string operator+(const Block& block) {
+            return *this << block;
+        }
     };
 private:
-    struct Superblock {
+    struct Header {
         size_t blockSize;
         size_t blockCount;
 
-        Superblock()
+        Header()
         : blockSize(-1), blockCount(-1)
         {}
 
-        Superblock(size_t _blockSize, size_t _blockCount)
+        Header(size_t _blockSize, size_t _blockCount)
         : blockSize(_blockSize), blockCount(_blockCount)
         {}
 
@@ -55,18 +54,66 @@ private:
             blockCount = -1;
         }
 
-        size_t calculateOffsetOf(size_t blockPos) {
-            return sizeof(Superblock) + ((blockSize + sizeof(bool)) * blockPos);
+        int calculateOffsetOf(size_t blockPos) {
+            return sizeof(Header) + (blockSize * blockPos);
+        }        
+    }__attribute((packed));
+private:
+    struct Inode {
+        char filename[64];
+        uint64_t offset[8];
+        uint64_t size;
+        bool free;
+
+        void clearOffset() {
+            for (int i = 0; i < 8; i++) {
+                offset[i] = -1;
+            }
         }
-        
-    };
+
+        void remove() {
+            clearOffset();
+        }
+
+        void setInode(const std::string& _filename) {
+            _filename.copy(filename, 64);
+            clearOffset();
+            free = false;
+        }
+
+        Inode()
+        : size(0), free(true) 
+        {
+            for (int i = 0; i < 64; i++) {
+                filename[i] = ' ';
+            }            
+            clearOffset();
+        }
+
+    }__attribute((packed));
+private:
+    struct Superblock {
+        uint32_t initialBlock; //Where the first writing block starts
+        uint32_t byteMapPos; //Where the map of free blocks starts
+        uint32_t inodesInitialBlockPos;
+        uint32_t inodesFinalBlockPos;
+        uint32_t blocksRequiered;
+        uint32_t inodesPerBlock;
+
+        Superblock()
+        : initialBlock(0), byteMapPos(0), inodesInitialBlockPos(0), inodesFinalBlockPos(0), inodesPerBlock(0)
+        {}
+
+        Superblock(uint32_t _inodesPerBlock, uint32_t inodesInitialBlock, uint32_t inodesFinalBlock, uint32_t _blocksRequiered)
+        : byteMapPos(1), inodesPerBlock(_inodesPerBlock), inodesInitialBlockPos(inodesInitialBlock), inodesFinalBlockPos(inodesFinalBlock), initialBlock(inodesFinalBlock + 1), blocksRequiered(_blocksRequiered)
+        {}
+    }__attribute((packed));
 private:
     using Path = std::filesystem::path;
-
     std::string deviceName;
     const Path ROOT;
 
-    Superblock superblock;
+    Header header;
 public:
     BlockDevice()
     : ROOT("devices"), deviceName("")
@@ -75,13 +122,18 @@ public:
             std::filesystem::create_directory(ROOT);
         }
     }
+    void showSuperblockInfo();
     void deviceInfo();
 
     bool create(const std::string& deviceName, size_t blockSize, size_t blockCount);
     bool close();
     bool open(const std::string& deviceName);
     bool writeBlock(size_t blockPos, const std::string& data);
-    std::string readBlock(size_t blockPos);
+    Block readBlock(size_t blockPos);
+    void removeFile(std::string& filename);
+    void writeFile(std::string& filename, std::string& text);
+    std::pair<int, int> getInodePos(const Superblock& superblock, std::string& filename);
+    void format();
 
     inline Path getRootDirectory() { return ROOT; }
     inline Path getDevicePath() { return (isDeviceOpen()) ? ROOT / deviceName : ROOT; }

@@ -6,18 +6,24 @@ void help() {
     std::cout << AnsiCodes::BLUE;
     std::cout << "Commonly use commands" << '\n';
     std::cout << "\t --help: display a list of all commands" << '\n';
-    std::cout << "\t ld: display's a list of all partitions" << '\n';
-    std::cout << "\t kill << exit's this program" << '\n';
-    std::cout << "\t clear: remove's every element on the screen, for a cleaner terminal." << '\n';
-    std::cout << "\n Block device basic tools:" << '\n';
-    std::cout << "\t create <file name> <blocks size> <block quantity>: creates a block with the specified name, size of each block and how many blocks to create" << '\n';
-    std::cout << "\t\t\t\t   (IMPORTANT: the size of the block device itself could be greater than expected due to additional information needed to be stored)" << '\n';;
-    std::cout << "\t select <file name>: selects the block with the specified name." << '\n';
+    std::cout << "\t ld: display's a list of all devices" << '\n';
+    std::cout << "\t kill: exits the program" << '\n';
+    std::cout << "\t clear: remove's every element on the screen, for a cleaner terminal!" << '\n';
+    std::cout << "\nBlock device basic tools:" << '\n';
+    std::cout << "\t create <file name> <blocks size> <block quantity>: creates a block device with the specified name, size of each block and how many blocks to create." << '\n';
+    std::cout << "\t\t\t\t   (IMPORTANT: the size of the block device itself could be greater than expected due to a little bit of additional information needed to be stored)" << '\n';;
+    std::cout << "\t select <file name>: selects the block device with the specified name." << '\n';
     std::cout << "\t close: closes the current block device." << '\n';
-    std::cout << "\t info: displays some basic information about the selected file" << '\n'; 
-    std::cout << "\t write <block position> <data>: writed the data to the specified block, wrap the data between some \"\"" << '\n';
+    std::cout << "\t info: displays some basic information about the selected block device." << '\n'; 
+    std::cout << "\t write <block position> <data>: writes the data to the specified block, wrap the data between \"\"" << '\n';
     std::cout << "\t read <block position> <offset> <total characters>: reads the block specified starting from the offset until reaching the quantity of chars specified."<< '\n';
-    std::cout << "\t\t\t\t if nothing but the block is provided we'll read everything on that block!";
+    std::cout << "\t\t\t\t if nothing but the block is provided it'll read everything on the block!" << '\n';
+    std::cout << "\nFile manager tools: " << '\n';
+    std::cout << "\tformat: removes all the files on the device." << '\n';
+    std::cout << "\tls: list all the files on the device." << '\n';
+    std::cout << "\tsuperblock: see the information stored on the superblock." << '\n';
+    std::cout << "\twritef <filename> <text>: creates a file with the specified name with the specified text, wrap the data between \"\"." << '\n';
+    std::cout << "\trm <filename>: deletes the specified file from the device." << '\n';    
 //    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';
 }
@@ -56,25 +62,22 @@ void openBlockDevice(std::istringstream& iss, BlockDevice& blockDevice) {
 }
 
 bool writeOnDevice(std::istringstream& iss, BlockDevice& blockDevice) {
+    int blockPos = -1;
+    iss >> blockPos;
+    if (blockPos < 0) {
+        throw Warning("Please input a valid position in which you'll write the data!", true);
+    }
+
     std::string info;
     char quote;
-
     iss >> quote;
     if (quote != '"') {
         throw Warning("Please use \" to mark the beginning of your text.");
     }
-
     std::getline(iss, info, quote);
-    int blockPos = -1;
-    iss >> blockPos;
-    if (blockPos == -1) {
-        throw Warning("Please input in which block you'll write the text", true);
-    }
 
     return blockDevice.writeBlock(blockPos, info);    
 }
-
-
 
 void readOnDevice(std::istringstream& iss, BlockDevice& blockDevice) {
     int blockPos = -1;
@@ -83,9 +86,9 @@ void readOnDevice(std::istringstream& iss, BlockDevice& blockDevice) {
         throw Warning("Please input a valid block position", true);
     }
 
-    std::string text = blockDevice.readBlock(blockPos);
+    auto block = blockDevice.readBlock(blockPos);
     int offset = 0;
-    int readLength = text.size();
+    int readLength = block.size();
 
     iss >> offset >> readLength;
     if (offset < 0 || readLength < 0) {
@@ -94,8 +97,8 @@ void readOnDevice(std::istringstream& iss, BlockDevice& blockDevice) {
 
     std::cout << AnsiCodes::DEFAULT;
     for (int i = 0; i < readLength; i++) {
-        if (text[i] == '\0') break;
-        std::cout << std::hex << (int) text[offset + i] << ' ';
+        if (block[i] == '\0') break;
+        std::cout << std::hex << (int) block[offset + i] << ' ';
     }
     std::cout << std::endl;
 }
@@ -107,10 +110,48 @@ void listDevices(BlockDevice& blockDevice) {
     std::cout << AnsiCodes::DEFAULT << std::endl;
 }
 
+void writeFile(std::istringstream& iss, BlockDevice& blockDevice) {
+    std::string filename = "";
+    std::string text = "";
+
+    iss >> filename;
+    if (filename.empty()) {
+        throw Warning("Please input the name of the file.");
+    }
+
+    if (filename.length() > 64) {
+        throw Warning("Please limit the name of the file to just 64 bytes.");
+    }
+
+    char quote;
+    iss >> quote;
+    if (quote != '"') {
+        throw Warning("Please use \" to mark the beginning of your text.");
+    }
+    
+    std::getline(iss, text, quote);
+    if (text.empty()) {
+        throw Warning("Please input the text you'll send into the file.");
+    }
+
+    blockDevice.writeFile(filename, text);
+}
+
+void removeFile(std::istringstream& iss, BlockDevice& BlockDevice) {
+    std::string filename = "";
+    iss >> filename;
+    if (filename.empty()) {
+        throw Warning("Please input the filename");
+    }
+
+    BlockDevice.removeFile(filename);
+}
+
 int main() {
     BlockDevice blockDevice;
     std::string text;
     bool loop = true;
+    help();
     while (loop) {
         try {
             AnsiCodes::showRootDirectory(blockDevice.getDevicePath());
@@ -140,6 +181,16 @@ int main() {
                 readOnDevice(iss, blockDevice);
             } else if (command == "ld") {
                 listDevices(blockDevice);
+            } else if (command == "superblock") {
+                blockDevice.showSuperblockInfo();
+            } else if (command == "ls") {
+//                blockDevice.listFiles();
+            } else if (command == "writef") {
+                writeFile(iss, blockDevice);
+            } else if (command == "format") {
+                blockDevice.format();
+            } else if (command == "rm") {
+                removeFile(iss, blockDevice);
             }
 
             std::cin.clear();
