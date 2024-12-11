@@ -29,11 +29,11 @@ private:
         }
 
         std::string operator<<(const Block& block) {
-            return bits + " " + block.bits;
+            return bits += block.bits;
         }
 
         std::string operator+(const Block& block) {
-            return *this << block;
+            return bits + block.bits;
         }
     };
 private:
@@ -131,6 +131,7 @@ public:
     bool writeBlock(size_t blockPos, const std::string& data);
     Block readBlock(size_t blockPos);
     std::pair<int, int> getInodePos(const Superblock& superblock, std::string& filename);
+    Block getContent(std::string& filename);
     void removeFile(std::string& filename);
     void writeFile(std::string& filename, std::string& text);
     void listFiles();

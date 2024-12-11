@@ -24,6 +24,8 @@ void help() {
     std::cout << "\tsuperblock: see the information stored on the superblock." << '\n';
     std::cout << "\twritef <filename> <text>: creates a file with the specified name with the specified text, wrap the data between \"\"." << '\n';
     std::cout << "\trm <filename>: deletes the specified file from the device." << '\n';    
+    std::cout << "\tcat <filename>: display the content on a specific file." << '\n';
+    std::cout << "\thexdump <filename>: display the content on a specific file on hex values." << '\n';
 //    std::cout << "\t" << '\n';
     std::cout << AnsiCodes::DEFAULT << '\n';
 }
@@ -147,6 +149,31 @@ void removeFile(std::istringstream& iss, BlockDevice& BlockDevice) {
     BlockDevice.removeFile(filename);
 }
 
+void getFileContent(std::istringstream& iss, BlockDevice& BlockDevice) {
+    std::string filename = "";
+    iss >> filename;
+    if (filename.empty()) {
+        throw Warning("Please input the filename");
+    }
+
+    std::cout << BlockDevice.getContent(filename).bits << '\n';
+}
+
+void getHexFileContent(std::istringstream& iss, BlockDevice& BlockDevice) {
+    std::string filename = "";
+    iss >> filename;
+    if (filename.empty()) {
+        throw Warning("Please input the filename");
+    }
+
+    auto blocks = BlockDevice.getContent(filename);
+    for (int i = 0; i < blocks.size(); i++) {
+        if (blocks[i] == '\0') break;
+        std::cout << std::hex << (int) blocks[i] << ' ';
+    }
+    std::cout << '\n';
+}
+
 int main() {
     BlockDevice blockDevice;
     std::string text;
@@ -191,6 +218,10 @@ int main() {
                 blockDevice.format();
             } else if (command == "rm") {
                 removeFile(iss, blockDevice);
+            } else if (command == "cat") {
+                getFileContent(iss, blockDevice);
+            } else if (command == "hexdump") {
+                getHexFileContent(iss, blockDevice);
             }
 
             std::cin.clear();

@@ -308,6 +308,44 @@ void BlockDevice::writeFile(std::string &filename, std::string &text)
     if (stringIteration < maxStringIterations) AnsiCodes::showError("There wasn't enough space for the whole text, it was cropped.");
 }
 
+BlockDevice::Block BlockDevice::getContent(std::string &filename)
+{
+    if (!isDeviceOpen()) {
+        throw OpenDevice();
+    }
+    
+    for (int i = filename.length(); i < 64; i++) {
+        filename.push_back(' ');
+    }
+
+    std::ifstream file(getDevicePath(), std::ios::binary);
+    if (!file) {
+        throw FileCrash(deviceName);
+    }
+    file.seekg(header.calculateOffsetOf(0), std::ios::beg);
+    Superblock superblock;
+    file.read(reinterpret_cast<char *>(&superblock), sizeof(Superblock));
+    std::pair<int, int> inodePos = getInodePos(superblock, filename);
+    if (inodePos.first == -1 || inodePos.second == -1) {
+        file.close();
+        throw Crash("The file couldn't been reach nor created.");
+    }
+
+    Inode inode[superblock.inodesPerBlock];
+    file.seekg(header.calculateOffsetOf(inodePos.first), std::ios::beg);
+    file.read(reinterpret_cast<char *>(&inode), sizeof(Inode) * superblock.inodesPerBlock);
+    if (inode[inodePos.second].free) {
+        throw Crash("The file doesn't exist.");
+    }
+
+    Block block;
+    for (int i = 0; i < 8; i++) {
+        if (inode[inodePos.second].offset[i] == -1) continue;
+        block << readBlock(inode[inodePos.second].offset[i]);
+    }
+    return block;
+}
+
 void printFilename(const char* filename) {
     std::cout << "\'";
     for (int i = 0; i < 64 ; i++) {
