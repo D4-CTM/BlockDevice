@@ -65,27 +65,11 @@ bool BlockDevice::create(const std::string &deviceName, size_t blockSize, const 
         throw CloseDevice();
     }
 
-    const uint32_t bytesMapSpace = 1 + (blockCount/blockSize);
-    const uint32_t inodesInitialBlock = 1 + bytesMapSpace;
-    const uint32_t inodesPerBlock = blockSize/sizeof(Inode);
-    if (inodesPerBlock == 0) {
-        throw Crash("to little space for the inodes, please make, at least, a block device with the block size of: " + std::to_string(sizeof(Inode)));
-    }
-
-    const uint32_t blocksRequiered = 256/inodesPerBlock;
-    if (blocksRequiered >= blockCount) {
-        throw Crash("Not enough space for the files. With the block size of " + std::to_string(blockSize) + " you need, at least, " + std::to_string(blocksRequiered + 8) + " blocks.");
-    }
-    if (blockCount > (blocksRequiered * inodesPerBlock) * 8) {
-        throw Warning("Maximum space needed for this block device (" + std::to_string((blocksRequiered * inodesPerBlock) * 8) + ") exceeded!\n\tPlease input less blocks!");
-    }
-
     std::ofstream file(ROOT / deviceName, std::ios::binary);
     if (!file) {
         throw FileCrash(deviceName);
     }
     
-    this->deviceName = deviceName;
     header = Header(blockSize, blockCount);
     file.write(reinterpret_cast<const char *>(&header), sizeof(Header));
     Block block(blockSize);
@@ -93,12 +77,7 @@ bool BlockDevice::create(const std::string &deviceName, size_t blockSize, const 
         file.write(block.data(), blockSize);
     }
     
-    Superblock superblock(inodesPerBlock, inodesInitialBlock, (inodesInitialBlock + blocksRequiered), blocksRequiered);
-    file.seekp(header.calculateOffsetOf(0));
-    file.write(reinterpret_cast<const char *>(&superblock), sizeof(Superblock));
     file.close();
-    format();
-    this->deviceName = "";
     return true;
 }
 
@@ -230,7 +209,7 @@ void BlockDevice::removeFile(std::string &filename)
     std::pair<int, int> inodePos = getInodePos(superblock, filename);
     if (inodePos.first == -1 || inodePos.second == -1) {
         file.close();
-        throw Crash("the file couldn't been reach nor created.");
+        throw Crash("the file wasn't found!");
     }
 
     Inode inode[superblock.inodesPerBlock];
@@ -337,7 +316,7 @@ BlockDevice::Block BlockDevice::getContent(std::string &filename)
     std::pair<int, int> inodePos = getInodePos(superblock, filename);
     if (inodePos.first == -1 || inodePos.second == -1) {
         file.close();
-        throw Crash("the file couldn't been reach nor created.");
+        throw Crash("the file couldn't been reach nor found.");
     }
 
     Inode inode[superblock.inodesPerBlock];
@@ -397,11 +376,26 @@ void BlockDevice::format()
     if (!isDeviceOpen()) {
         throw OpenDevice();
     }
+    const uint32_t bytesMapSpace = 1 + (header.blockCount/header.blockSize);
+    const uint32_t inodesInitialBlock = 1 + bytesMapSpace;
+    const uint32_t inodesPerBlock = header.blockSize/sizeof(Inode);
+    if (inodesPerBlock == 0) {
+        throw Crash("to little space for the inodes, please make, at least, a block device with the block size of: " + std::to_string(sizeof(Inode)));
+    }
 
+    const uint32_t blocksRequiered = 256/inodesPerBlock;
+    if (blocksRequiered >= header.blockCount) {
+        throw Crash("Not enough space for the files. With the block size of " + std::to_string(header.blockSize) + " you need, at least, " + std::to_string(blocksRequiered + 8) + " blocks.");
+    }
+
+    if (header.blockCount > (blocksRequiered * inodesPerBlock) * 8) {
+        const uint32_t suggestedBlockCount = (inodesInitialBlock + blocksRequiered) + ((blocksRequiered * inodesPerBlock) * 8);
+        throw Warning("Maximum space needed for this block device (" + std::to_string(suggestedBlockCount) + ") exceeded!\n\tPlease input less blocks!");
+    }
     std::fstream file(getDevicePath(), std::ios::in | std::ios::out | std::ios::binary);
-    file.seekg(header.calculateOffsetOf(0), std::ios::beg);
-    Superblock superblock;
-    file.read(reinterpret_cast<char *>(&superblock), sizeof(Superblock));
+    Superblock superblock(inodesPerBlock, inodesInitialBlock, (inodesInitialBlock + blocksRequiered), blocksRequiered);
+    file.seekp(header.calculateOffsetOf(0), std::ios::beg);
+    file.write(reinterpret_cast<const char *>(&superblock), sizeof(Superblock));
 
     file.seekp(header.calculateOffsetOf(1));
     bool byteMap[header.blockCount];

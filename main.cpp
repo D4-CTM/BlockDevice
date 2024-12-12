@@ -43,6 +43,14 @@ void createBlockDevice(std::istringstream& iss, BlockDevice& blockDevice) {
         throw Crash("please input the name of the device!");
     }
 
+    if (blockSize <= 0) {
+        throw Crash("please input a valid block size!");
+    }
+
+    if (blockCount <= 0) {
+        throw Crash("please input a valid block count!");
+    }
+
     blockDevice.create(filename, blockSize, blockCount);
 }
 
@@ -266,14 +274,11 @@ int main() {
 
             std::cin.clear();
         } catch (Crash& e) {
-            blockDevice.close();
             e.what();
         } catch (Warning& e) {
-            blockDevice.close();
             e.what();
         } catch (std::exception& e) {
-            blockDevice.close();
-            std::cerr << AnsiCodes::RED << "ERROR: Something interrupted the operation!" << AnsiCodes::DEFAULT << std::endl;
+            AnsiCodes::showError("Something went wrong during the operation!");
         }
     }
 
