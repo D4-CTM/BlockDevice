@@ -398,11 +398,12 @@ void BlockDevice::format()
     file.write(reinterpret_cast<const char *>(&superblock), sizeof(Superblock));
 
     file.seekp(header.calculateOffsetOf(1));
-    bool byteMap[header.blockCount];
+
+    bool free;
     for (int i = 0; i <= header.blockCount; i++) {
-        byteMap[i] = (i > superblock.inodesFinalBlockPos);
+        free = (i > superblock.inodesFinalBlockPos);
+        file.write(reinterpret_cast<const char *>(&free), sizeof(bool));
     }
-    file.write(reinterpret_cast<const char *>(&byteMap), (sizeof(bool) * header.blockCount));
 
     Inode inodes[superblock.inodesPerBlock];
     for (int i = 0; i < superblock.blocksRequiered; i++) {
