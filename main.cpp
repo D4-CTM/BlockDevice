@@ -190,7 +190,9 @@ void copyOut(std::istringstream& iss, BlockDevice& blockDevice) {
     }
 
     auto block = blockDevice.getContent(deviceFile);
-    std::ofstream file(outerFile, std::ios::trunc);
+    
+    std::ofstream file(outerFile, std::ios::trunc | std::ios::out);
+    std::cout << block.size();
     file << block.bits;
     file.close();
 }

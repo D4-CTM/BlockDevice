@@ -158,9 +158,14 @@ BlockDevice::Block BlockDevice::readBlock(size_t blockPos)
 
     file.seekg(offset, std::ios::beg);
     Block block;
-    block.bits.resize(header.blockSize);
-    file.read(block.data(), header.blockSize);
-
+    char c;
+    for (int i = 0; i < header.blockSize; i++) {
+        file.read(reinterpret_cast<char *>(&c), sizeof(char));
+        if (c != '\0') {
+            block.bits.push_back(c);
+        }
+    }
+    block.bits.shrink_to_fit();
     return block;
 }
 /*
